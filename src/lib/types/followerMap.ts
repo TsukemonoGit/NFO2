@@ -2,19 +2,21 @@
 import type { Profile } from "./profile"; */
 
 /** pubkeyごとのデータを保存するための型 */
-/*export type FollowerMap = Record<string, UserData>;
+export type FollowerMap = Record<string, UserData>;
 
-//kind3でわかるでーたと。フェッチでえるでーたをわけてかんがえる
-//ふぇっちでーたは、tanstack queryにいれてかんりする。
-/**
- export interface UserData {
-  npub: string;
-  relayUrl?: string;
+//並べ替え計算用のデータ
+
+export interface UserData {
+  myPetname?: string;
+  theirPetname?: string;
+  latestCreated_at?: number;
+  mutualStatus?: MutualStatus;
+}
+
+export interface UserStatus {
+  mutual: MutualStatus;
   petname?: string;
- // profile?: Profile; tanstack queryにいれてかんりする。
-  // mutualStatus: MutualStatus;tanstack queryにいれてかんりする。
- // latestNote?: Nostr.Event;  tanstack queryにいれてかんりする。
-} */
+}
 export type MutualStatus = "mutual" | "notMutual" | "unknown";
 export const MUTUAL_RANK: Record<MutualStatus, number> = {
   mutual: 0,

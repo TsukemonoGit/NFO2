@@ -1,165 +1,265 @@
-// sortFollowers.test.ts
-import { describe, it, expect } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { latestKind3 } from "$lib/store/store.svelte";
+import { queryKeys } from "$lib/store/constants";
+import { sortFollowList } from "$lib/utils/sortFollowers";
 import { SortOrder } from "$lib/types";
-import type * as Nostr from "nostr-typedef";
-import { sortFollowers } from "$lib/utils/sortFollowers";
 
-const makeEvent = (created_at: number): Nostr.Event => ({
-  id: "1",
-  pubkey: "a".repeat(64),
-  kind: 1,
-  content: "",
-  tags: [],
-  created_at,
-  sig: "",
-});
+function createKind3Event(
+  follows: Array<{
+    pubkey: string;
+    petname?: string;
+  }>,
+) {
+  return {
+    kind: 3,
+    pubkey: "me",
+    created_at: 1000,
+    content: "",
+    tags: follows.map((v) =>
+      v.petname ? ["p", v.pubkey, "", v.petname] : ["p", v.pubkey],
+    ),
+    id: "kind3-id",
+    sig: "kind3-sig",
+  };
+}
 
-const makeMap = (
-  entries: [string, Partial<Omit<FollowerMap[string], "npub">>][],
-): FollowerMap =>
-  Object.fromEntries(
-    entries.map(([pubkey, data]) => [
-      pubkey,
-      { npub: `npub_${pubkey}`, ...data, mutualStatus: "unknown" },
-    ]),
-  );
+function getFollowList(kind3: { tags: string[][] }): string[] {
+  return kind3.tags.filter((tag) => tag[0] === "p").map((tag) => tag[1]);
+}
 
-describe("sortFollowers", () => {
-  it("空配列を返す", () => {
-    expect(sortFollowers([], {}, SortOrder.follow)).toEqual([]);
+describe("sortFollowList", () => {
+  let queryClient: {
+    getQueryData: ReturnType<typeof vi.fn>;
+  };
+
+  beforeEach(() => {
+    queryClient = {
+      getQueryData: vi.fn(),
+    };
+
+    latestKind3.value = null;
   });
 
-  it("元の配列を変更しない", () => {
-    const pubkeys = ["a", "b", "c"];
-    const map = makeMap([
-      ["a", {}],
-      ["b", {}],
-      ["c", {}],
+  it("follow: kind3の順序を維持する", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "charlie" },
+      { pubkey: "alice" },
+      { pubkey: "bob" },
     ]);
-    const original = [...pubkeys];
-    sortFollowers(pubkeys, map, SortOrder.follow);
-    expect(pubkeys).toEqual(original);
+
+    latestKind3.value = kind3 as any;
+
+    const followList = getFollowList(kind3);
+
+    const result = sortFollowList(
+      followList,
+      SortOrder.follow,
+      queryClient as any,
+    );
+
+    expect(result).toEqual(["charlie", "alice", "bob"]);
   });
 
-  describe("SortOrder.follow", () => {
-    it("挿入順を維持する", () => {
-      const pubkeys = ["a", "b", "c"];
-      const map = makeMap([
-        ["a", {}],
-        ["b", {}],
-        ["c", {}],
-      ]);
-      expect(sortFollowers(pubkeys, map, SortOrder.follow)).toEqual([
-        "a",
-        "b",
-        "c",
-      ]);
+  it("latestPost: created_at降順", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "alice" },
+      { pubkey: "bob" },
+      { pubkey: "charlie" },
+    ]);
+
+    latestKind3.value = kind3 as any;
+
+    queryClient.getQueryData.mockImplementation((key) => {
+      if (key[0] === queryKeys.latestNote) {
+        switch (key[1]) {
+          case "alice":
+            return { created_at: 100 };
+          case "bob":
+            return { created_at: 300 };
+          case "charlie":
+            return { created_at: 200 };
+        }
+      }
+
+      return undefined;
     });
+
+    const result = sortFollowList(
+      getFollowList(kind3),
+      SortOrder.latestPost,
+      queryClient as any,
+    );
+
+    expect(result).toEqual(["bob", "charlie", "alice"]);
   });
 
-  describe("SortOrder.latestPost", () => {
-    it("created_atの昇順でソートする", () => {
-      const pubkeys = ["a", "b", "c"];
-      const map = makeMap([
-        ["a", { latestNote: makeEvent(300) }],
-        ["b", { latestNote: makeEvent(100) }],
-        ["c", { latestNote: makeEvent(200) }],
-      ]);
-      expect(sortFollowers(pubkeys, map, SortOrder.latestPost)).toEqual([
-        "b",
-        "c",
-        "a",
-      ]);
+  it("latestPost: 投稿なしは末尾", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "alice" },
+      { pubkey: "bob" },
+      { pubkey: "charlie" },
+    ]);
+
+    latestKind3.value = kind3 as any;
+
+    queryClient.getQueryData.mockImplementation((key) => {
+      if (key[0] === queryKeys.latestNote) {
+        switch (key[1]) {
+          case "alice":
+            return { created_at: 100 };
+          case "bob":
+            return undefined;
+          case "charlie":
+            return { created_at: 200 };
+        }
+      }
+
+      return undefined;
     });
 
-    it("latestNoteがundefinedの場合は末尾になる", () => {
-      const pubkeys = ["a", "b", "c"];
-      const map = makeMap([
-        ["a", { latestNote: makeEvent(100) }],
-        ["b", {}],
-        ["c", { latestNote: makeEvent(200) }],
-      ]);
-      const result = sortFollowers(pubkeys, map, SortOrder.latestPost);
-      expect(result[2]).toBe("b");
-    });
+    const result = sortFollowList(
+      getFollowList(kind3),
+      SortOrder.latestPost,
+      queryClient as any,
+    );
 
-    it("latestNoteがundefined同士の相対順序は不定だが全件含まれる", () => {
-      const pubkeys = ["a", "b"];
-      const map = makeMap([
-        ["a", {}],
-        ["b", {}],
-      ]);
-      expect(sortFollowers(pubkeys, map, SortOrder.latestPost)).toHaveLength(2);
-    });
+    expect(result).toEqual(["charlie", "alice", "bob"]);
   });
 
-  describe("SortOrder.mutual", () => {
-    it("mutual → notMutual → unknown の順にソートする", () => {
-      const pubkeys = ["a", "b", "c"];
-      const map = makeMap([
-        ["a", { mutualStatus: "unknown" }],
-        ["b", { mutualStatus: "mutual" }],
-        ["c", { mutualStatus: "notMutual" }],
-      ]);
-      expect(sortFollowers(pubkeys, map, SortOrder.mutual)).toEqual([
-        "b",
-        "c",
-        "a",
-      ]);
+  it("mutual: mutualを先頭にする", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "alice" },
+      { pubkey: "bob" },
+      { pubkey: "charlie" },
+    ]);
+
+    latestKind3.value = kind3 as any;
+
+    queryClient.getQueryData.mockImplementation((key) => {
+      if (key[0] === queryKeys.userStatus) {
+        switch (key[1]) {
+          case "alice":
+            return { mutual: "notMutual" };
+          case "bob":
+            return { mutual: "mutual" };
+          case "charlie":
+            return { mutual: "mutual" };
+        }
+      }
+
+      return undefined;
     });
 
-    it("mutualStatusがundefinedの場合はunknown扱いで末尾になる", () => {
-      const pubkeys = ["a", "b"];
-      const map = makeMap([
-        ["a", {}],
-        ["b", { mutualStatus: "mutual" }],
-      ]);
-      expect(sortFollowers(pubkeys, map, SortOrder.mutual)).toEqual(["b", "a"]);
-    });
+    const result = sortFollowList(
+      getFollowList(kind3),
+      SortOrder.mutual,
+      queryClient as any,
+    );
 
-    it("同じステータス同士は相対順序を保つ", () => {
-      const pubkeys = ["a", "b"];
-      const map = makeMap([
-        ["a", { mutualStatus: "mutual" }],
-        ["b", { mutualStatus: "mutual" }],
-      ]);
-      expect(sortFollowers(pubkeys, map, SortOrder.mutual)).toEqual(["a", "b"]);
-    });
+    expect(result).toEqual(["bob", "charlie", "alice"]);
   });
 
-  describe("SortOrder.petname", () => {
-    it("petnameのlocaleCompare順でソートする", () => {
-      const pubkeys = ["a", "b", "c"];
-      const map = makeMap([
-        ["a", { petname: "charlie" }],
-        ["b", { petname: "alice" }],
-        ["c", { petname: "bob" }],
-      ]);
-      expect(sortFollowers(pubkeys, map, SortOrder.petname)).toEqual([
-        "b",
-        "c",
-        "a",
-      ]);
+  it("mutual: 同順位はfollow順維持", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "charlie" },
+      { pubkey: "alice" },
+      { pubkey: "bob" },
+    ]);
+
+    latestKind3.value = kind3 as any;
+
+    queryClient.getQueryData.mockImplementation((key) => {
+      if (key[0] === queryKeys.userStatus) {
+        return { mutual: "mutual" };
+      }
+
+      return undefined;
     });
 
-    it("petnameがundefinedの場合は末尾になる", () => {
-      const pubkeys = ["a", "b", "c"];
-      const map = makeMap([
-        ["a", { petname: "alice" }],
-        ["b", {}],
-        ["c", { petname: "charlie" }],
-      ]);
-      const result = sortFollowers(pubkeys, map, SortOrder.petname);
-      expect(result[2]).toBe("b");
-    });
+    const result = sortFollowList(
+      getFollowList(kind3),
+      SortOrder.mutual,
+      queryClient as any,
+    );
 
-    it("petnameがundefined同士の相対順序は不定だが全件含まれる", () => {
-      const pubkeys = ["a", "b"];
-      const map = makeMap([
-        ["a", {}],
-        ["b", {}],
-      ]);
-      expect(sortFollowers(pubkeys, map, SortOrder.petname)).toHaveLength(2);
-    });
+    expect(result).toEqual(["charlie", "alice", "bob"]);
+  });
+
+  it("petname: 昇順ソート", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "alice", petname: "C" },
+      { pubkey: "bob", petname: "A" },
+      { pubkey: "charlie", petname: "B" },
+    ]);
+
+    latestKind3.value = kind3 as any;
+
+    const result = sortFollowList(
+      getFollowList(kind3),
+      SortOrder.petname,
+      queryClient as any,
+    );
+
+    expect(result).toEqual(["bob", "charlie", "alice"]);
+  });
+
+  it("petname: 未設定は末尾", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "alice", petname: "Charlie" },
+      { pubkey: "bob" },
+      { pubkey: "charlie", petname: "Alice" },
+    ]);
+
+    latestKind3.value = kind3 as any;
+
+    const result = sortFollowList(
+      getFollowList(kind3),
+      SortOrder.petname,
+      queryClient as any,
+    );
+
+    expect(result).toEqual(["charlie", "alice", "bob"]);
+  });
+
+  it("petname: 同名はfollow順維持", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "charlie", petname: "same" },
+      { pubkey: "alice", petname: "same" },
+      { pubkey: "bob", petname: "same" },
+    ]);
+
+    latestKind3.value = kind3 as any;
+
+    const result = sortFollowList(
+      getFollowList(kind3),
+      SortOrder.petname,
+      queryClient as any,
+    );
+
+    expect(result).toEqual(["charlie", "alice", "bob"]);
+  });
+
+  it("petname: 日本語順", () => {
+    const kind3 = createKind3Event([
+      { pubkey: "alice", petname: "さとう" },
+      { pubkey: "bob", petname: "あおき" },
+      { pubkey: "charlie", petname: "なかむら" },
+    ]);
+
+    latestKind3.value = kind3 as any;
+
+    const result = sortFollowList(
+      getFollowList(kind3),
+      SortOrder.petname,
+      queryClient as any,
+    );
+
+    expect(result).toEqual(["bob", "alice", "charlie"]);
+  });
+
+  it("空配列", () => {
+    const result = sortFollowList([], SortOrder.follow, queryClient as any);
+
+    expect(result).toEqual([]);
   });
 });

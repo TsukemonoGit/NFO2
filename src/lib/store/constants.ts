@@ -39,5 +39,5 @@ export const feedbackRelay = [
 export const queryKeys = {
   profile: "profile",
   latestNote: "latestNote",
-  mutualStatus: "mutualStatus",
+  userStatus: "userStatus",
 };

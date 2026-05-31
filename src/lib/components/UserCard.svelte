@@ -2,13 +2,13 @@
   import { queryKeys } from "$lib/store/constants";
   import { queryClient } from "$lib/store/store.svelte";
   import { QueryObserver } from "@tanstack/svelte-query";
-  import type { MutualStatus, Profile } from "$lib/types";
+  import type { UserStatus, Profile } from "$lib/types";
   import type * as Nostr from "nostr-typedef";
   import { untrack } from "svelte";
 
   let { pubkey, petname }: { pubkey: string; petname?: string } = $props();
 
-  let mutualStatus = $state<MutualStatus | undefined>(undefined);
+  let userStatus = $state<UserStatus | undefined>(undefined);
   let latestNote = $state<Nostr.Event | undefined>(undefined);
   let profile = $state<Profile | undefined>(undefined);
 
@@ -68,19 +68,19 @@
 
   function getUserStatus() {
     const cachedStatus = queryClient.value!.getQueryData([
-      queryKeys.mutualStatus,
+      queryKeys.userStatus,
       pubkey,
     ]);
     if (cachedStatus) {
-      mutualStatus = cachedStatus as MutualStatus;
+      userStatus = cachedStatus as UserStatus;
       return;
     }
     const obsStatus = new QueryObserver(queryClient.value!, {
       // svelte-ignore state_referenced_locally
-      queryKey: [queryKeys.mutualStatus, pubkey],
+      queryKey: [queryKeys.userStatus, pubkey],
     });
     const unsubscribeStatus = obsStatus.subscribe((result) => {
-      mutualStatus = result.data as MutualStatus;
+      userStatus = result.data as UserStatus;
 
       if (result.data !== undefined) {
         unsubscribeStatus();
@@ -116,7 +116,7 @@
             {profile?.display_name ?? profile?.name ?? petname ?? "Unknown"}
           </h3>
 
-          {#if mutualStatus === "mutual"}
+          {#if userStatus?.mutual === "mutual"}
             <span
               class="rounded-md bg-green-500/10 px-2 py-0.5 text-xs text-green-600"
             >

@@ -10,10 +10,10 @@ import { verifier } from "@rx-nostr/crypto";
 import { queryKeys, relaySearchRelays } from "$lib/store/constants";
 import * as Nostr from "nostr-typedef";
 import { latestKind3, loginUser } from "$lib/store/store.svelte";
-import { getFollowList, getProfile } from "$lib/utils/utils";
+import { getProfile } from "$lib/utils/utils";
 import { filter, share } from "rxjs";
-import { QueryClient, useQueryClient } from "@tanstack/svelte-query";
-import type { MutualStatus, Profile } from "$lib/types";
+import { QueryClient } from "@tanstack/svelte-query";
+import type { Profile, UserStatus } from "$lib/types";
 
 const rxNostr = createRxNostr({
   verifier,
@@ -225,8 +225,8 @@ function fetchKind3Events(queryClient: QueryClient, followList: string[]) {
   if (isKind3Fetching) return;
   isKind3Fetching = true;
 
-  const cachedKind3 = queryClient.getQueriesData<MutualStatus>({
-    queryKey: [queryKeys.mutualStatus],
+  const cachedKind3 = queryClient.getQueriesData<UserStatus>({
+    queryKey: [queryKeys.userStatus],
   });
   const cachedKind3Pubkeys = new Set(
     cachedKind3
@@ -249,13 +249,18 @@ function fetchKind3Events(queryClient: QueryClient, followList: string[]) {
       .pipe(uniq())
       .subscribe({
         next: (pk) => {
-          const theirFollowList = getFollowList(pk.event);
-          const status: MutualStatus = theirFollowList.includes(loginUser.value)
-            ? "mutual"
-            : "notMutual";
+          const myData = pk.event.tags.find(
+            (tag) => tag[0] === "p" && tag[1] === loginUser.value,
+          );
+
+          const status: UserStatus = {
+            mutual: myData ? "mutual" : "notMutual",
+            petname: myData?.[3] || undefined,
+          };
+
           queryClient.setQueryData(
-            [queryKeys.mutualStatus, pk.event.pubkey],
-            (before: MutualStatus | undefined) => {
+            [queryKeys.userStatus, pk.event.pubkey],
+            (before: UserStatus | undefined) => {
               if (!before) {
                 return status;
               }
