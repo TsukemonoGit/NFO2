@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@import "../lib/material-theme.css";
+
+@theme {
+  --color-primary: var(--md-sys-color-primary);
+  --color-on-primary: var(--md-sys-color-onPrimary);
+  --color-primary-container: var(--md-sys-color-primaryContainer);
+  --color-on-primary-container: var(--md-sys-color-onPrimaryContainer);
+  --color-secondary: var(--md-sys-color-secondary);
+  --color-on-secondary: var(--md-sys-color-onSecondary);
+  --color-secondary-container: var(--md-sys-color-secondaryContainer);
+  --color-on-secondary-container: var(--md-sys-color-onSecondaryContainer);
+  --color-tertiary: var(--md-sys-color-tertiary);
+  --color-on-tertiary: var(--md-sys-color-onTertiary);
+  --color-tertiary-container: var(--md-sys-color-tertiaryContainer);
+  --color-on-tertiary-container: var(--md-sys-color-onTertiaryContainer);
+  --color-error: var(--md-sys-color-error);
+  --color-on-error: var(--md-sys-color-onError);
+  --color-error-container: var(--md-sys-color-errorContainer);
+  --color-on-error-container: var(--md-sys-color-onErrorContainer);
+  --color-background: var(--md-sys-color-background);
+  --color-on-background: var(--md-sys-color-onBackground);
+  --color-surface: var(--md-sys-color-surface);
+  --color-on-surface: var(--md-sys-color-onSurface);
+  --color-surface-variant: var(--md-sys-color-surfaceVariant);
+  --color-on-surface-variant: var(--md-sys-color-onSurfaceVariant);
+  --color-outline: var(--md-sys-color-outline);
+  --color-outline-variant: var(--md-sys-color-outlineVariant);
+  --color-inverse-surface: var(--md-sys-color-inverseSurface);
+  --color-inverse-on-surface: var(--md-sys-color-inverseOnSurface);
+  --color-inverse-primary: var(--md-sys-color-inversePrimary);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+}

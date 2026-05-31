@@ -1,0 +1,37 @@
+{
+  "name": "@konemono/vitest-nostr",
+  "version": "0.4.1",
+  "description": "vitest utilities for Nostr client",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "src",
+    "dist",
+    "types"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "nostr-typedef": "0.1.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7",
+    "vitest-websocket-mock": "^0.5.0"
+  },
+  "peerDependencies": {
+    "vitest": "^4.0.0",
+    "vitest-websocket-mock": "^0.5.0"
+  },
+  "dependencies": {
+    "mock-socket": "^9.3.1"
+  },
+  "license": "MIT"
+}
