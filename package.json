@@ -32,7 +32,9 @@
     "vitest-websocket-mock": "^0.5.0"
   },
   "dependencies": {
+    "@konemono/nostr-login": "^1.15.7",
     "@rx-nostr/crypto": "^3.1.6",
+    "@tanstack/svelte-query": "^6.1.33",
     "bits-ui": "^2.18.1",
     "nip07-awaiter": "^1.1.0",
     "nostr-tools": "^2.23.5",

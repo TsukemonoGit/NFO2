@@ -35,3 +35,9 @@ export const feedbackRelay = [
   "wss://cagliostr.compile-error.net",
   // "wss://relay.nostr.band/",
 ];
+
+export const queryKeys = {
+  profile: "profile",
+  latestNote: "latestNote",
+  mutualStatus: "mutualStatus",
+};

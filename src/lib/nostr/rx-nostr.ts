@@ -7,19 +7,13 @@ import {
   type EventPacket,
 } from "rx-nostr";
 import { verifier } from "@rx-nostr/crypto";
-import { relaySearchRelays } from "$lib/store/constants";
+import { queryKeys, relaySearchRelays } from "$lib/store/constants";
 import * as Nostr from "nostr-typedef";
-import {
-  followerMap,
-  initUser,
-  latestKind3,
-  loginUser,
-  setLatestNote,
-  setMutualStatus,
-  setProfile,
-} from "$lib/store/followStore.svelte";
-import { getFollowList } from "$lib/utils/utils";
+import { latestKind3, loginUser } from "$lib/store/store.svelte";
+import { getFollowList, getProfile } from "$lib/utils/utils";
 import { filter, share } from "rxjs";
+import { QueryClient, useQueryClient } from "@tanstack/svelte-query";
+import type { MutualStatus, Profile } from "$lib/types";
 
 const rxNostr = createRxNostr({
   verifier,
@@ -114,56 +108,140 @@ interface FetchFollowListOptions {
 }
 
 export function fetchFollowListEvents(
+  queryClient: QueryClient,
   followList: string[],
   options: FetchFollowListOptions = {},
 ) {
-  const { kind3 = false } = options;
+  fetchKind1Events(queryClient, followList);
 
-  const kind0Filters = followList.map((user) => ({
-    authors: [user],
-    limit: 1,
-    kinds: [0],
-  }));
-  const kind1Filters = followList.map((user) => ({
+  fetchKind0Events(queryClient, followList);
+  if (options.kind3) {
+    fetchKind3Events(queryClient, followList);
+  }
+}
+
+let isKind1Fetching = false; //連続でよばれないようにするため。
+function fetchKind1Events(queryClient: QueryClient, followList: string[]) {
+  if (isKind1Fetching) return;
+  isKind1Fetching = true;
+  const cachedKind1 = queryClient.getQueriesData<Nostr.Event>({
+    queryKey: [queryKeys.latestNote],
+  });
+
+  const cachedKind1Pubkeys = new Set(
+    cachedKind1
+      .filter(([, data]) => data !== undefined)
+      .map(([key]) => key[1] as string),
+  );
+
+  const missingKind1 = followList.filter((pk) => !cachedKind1Pubkeys.has(pk));
+
+  const kind1Filters = missingKind1.map((user) => ({
     authors: [user],
     limit: 1,
     kinds: [1],
   }));
 
-  const kind0Req = createRxBackwardReq();
   const kind1Req = createRxBackwardReq();
-
-  rxNostr
-    .use(kind0Req)
-    .pipe(uniq())
-    .subscribe({
-      next: (pk) => {
-        setProfile(pk.event.pubkey, pk.event);
-      },
-      error: () => {},
-      complete: () => {},
-    });
 
   rxNostr
     .use(kind1Req)
     .pipe(uniq())
     .subscribe({
       next: (pk) => {
-        setLatestNote(pk.event.pubkey, pk.event);
+        queryClient.setQueryData(
+          [queryKeys.latestNote, pk.event.pubkey],
+          (before: Nostr.Event | undefined) => {
+            if (!before || pk.event.created_at > before.created_at) {
+              return pk.event;
+            }
+            return before;
+          },
+        );
       },
-      error: () => {},
-      complete: () => {},
+      error: () => {
+        isKind1Fetching = false;
+      },
+      complete: () => {
+        isKind1Fetching = false;
+      },
     });
-
-  kind0Req.emit(kind0Filters);
   kind1Req.emit(kind1Filters);
+}
+let isKind0Fetching = false; //連続でよばれないようにするため。
+function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
+  if (isKind0Fetching) return;
+  isKind0Fetching = true;
 
-  if (kind3) {
-    const kind3Filters = followList.map((user) => ({
-      authors: [user],
-      limit: 1,
-      kinds: [3],
-    }));
+  const cachedKind0 = queryClient.getQueriesData<Profile>({
+    queryKey: [queryKeys.profile],
+  });
+
+  const cachedKind0Pubkeys = new Set(
+    cachedKind0
+      .filter(([, data]) => data !== undefined)
+      .map(([key]) => key[1] as string),
+  );
+
+  const missingKind0 = followList.filter((pk) => !cachedKind0Pubkeys.has(pk));
+
+  const kind0Filters = missingKind0.map((user) => ({
+    authors: [user],
+    limit: 1,
+    kinds: [0],
+  }));
+  const kind0Req = createRxBackwardReq();
+
+  rxNostr
+    .use(kind0Req)
+    .pipe(uniq())
+    .subscribe({
+      next: (pk) => {
+        const profile = getProfile(pk.event);
+        if (profile) {
+          queryClient.setQueryData(
+            [queryKeys.profile, pk.event.pubkey],
+            (before: Profile | undefined) => {
+              if (!before || profile.created_at > before.created_at) {
+                return profile;
+              }
+              return before;
+            },
+          );
+        }
+      },
+      error: () => {
+        isKind0Fetching = false;
+      },
+      complete: () => {
+        isKind0Fetching = false;
+      },
+    });
+  kind0Req.emit(kind0Filters);
+}
+
+let isKind3Fetching = false; //連続でよばれないようにするため。
+function fetchKind3Events(queryClient: QueryClient, followList: string[]) {
+  if (isKind3Fetching) return;
+  isKind3Fetching = true;
+
+  const cachedKind3 = queryClient.getQueriesData<MutualStatus>({
+    queryKey: [queryKeys.mutualStatus],
+  });
+  const cachedKind3Pubkeys = new Set(
+    cachedKind3
+      .filter(([, data]) => data !== undefined)
+      .map(([key]) => key[1] as string),
+  );
+
+  const missingKind3 = followList.filter((pk) => !cachedKind3Pubkeys.has(pk));
+  const kind3Filters = missingKind3.map((user) => ({
+    authors: [user],
+    limit: 1,
+    kinds: [3],
+  }));
+
+  if (kind3Filters.length > 0) {
     const kind3Req = createRxBackwardReq();
 
     rxNostr
@@ -172,13 +250,25 @@ export function fetchFollowListEvents(
       .subscribe({
         next: (pk) => {
           const theirFollowList = getFollowList(pk.event);
-          const status = theirFollowList.includes(loginUser.value)
+          const status: MutualStatus = theirFollowList.includes(loginUser.value)
             ? "mutual"
             : "notMutual";
-          setMutualStatus(pk.event.pubkey, status);
+          queryClient.setQueryData(
+            [queryKeys.mutualStatus, pk.event.pubkey],
+            (before: MutualStatus | undefined) => {
+              if (!before) {
+                return status;
+              }
+              return before;
+            },
+          );
         },
-        error: () => {},
-        complete: () => {},
+        error: () => {
+          isKind3Fetching = false;
+        },
+        complete: () => {
+          isKind3Fetching = false;
+        },
       });
 
     kind3Req.emit(kind3Filters);

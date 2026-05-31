@@ -1,7 +1,6 @@
 // sortFollowers.test.ts
 import { describe, it, expect } from "vitest";
 import { SortOrder } from "$lib/types";
-import type { FollowerMap } from "$lib/types";
 import type * as Nostr from "nostr-typedef";
 import { sortFollowers } from "$lib/utils/sortFollowers";
 
