@@ -4,6 +4,7 @@
   import { QueryObserver } from "@tanstack/svelte-query";
   import type { MutualStatus, Profile } from "$lib/types";
   import type * as Nostr from "nostr-typedef";
+  import { untrack } from "svelte";
 
   let { pubkey, petname }: { pubkey: string; petname?: string } = $props();
 
@@ -11,44 +12,81 @@
   let latestNote = $state<Nostr.Event | undefined>(undefined);
   let profile = $state<Profile | undefined>(undefined);
 
-  const obsKind3 = new QueryObserver(queryClient.value!, {
-    // svelte-ignore state_referenced_locally
-    queryKey: [queryKeys.mutualStatus, pubkey],
-  });
-
-  const obsLatestNote = new QueryObserver(queryClient.value!, {
-    // svelte-ignore state_referenced_locally
-    queryKey: [queryKeys.latestNote, pubkey],
-  });
-
-  const obsProfile = new QueryObserver(queryClient.value!, {
-    // svelte-ignore state_referenced_locally
-    queryKey: [queryKeys.profile, pubkey],
-  });
-
-  const unsubscribeKind3 = obsKind3.subscribe((result) => {
-    mutualStatus = result.data as MutualStatus;
-
-    if (result.data !== undefined) {
-      unsubscribeKind3();
+  $effect(() => {
+    if (pubkey) {
+      untrack(() => {
+        getUserProfile();
+        getUserLatestNote();
+        getUserStatus();
+      });
     }
   });
 
-  const unsubscribeLatestNote = obsLatestNote.subscribe((result) => {
-    latestNote = result.data as Nostr.Event;
-
-    if (result.data !== undefined) {
-      unsubscribeLatestNote();
+  function getUserProfile() {
+    const cachedProfile = queryClient.value!.getQueryData([
+      queryKeys.profile,
+      pubkey,
+    ]);
+    if (cachedProfile) {
+      profile = cachedProfile as Profile;
+      return;
     }
-  });
+    const obsProfile = new QueryObserver(queryClient.value!, {
+      // svelte-ignore state_referenced_locally
+      queryKey: [queryKeys.profile, pubkey],
+    });
+    const unsubscribeProfile = obsProfile.subscribe((result) => {
+      profile = result.data as Profile;
 
-  const unsubscribeProfile = obsProfile.subscribe((result) => {
-    profile = result.data as Profile;
+      if (result.data !== undefined) {
+        unsubscribeProfile();
+      }
+    });
+  }
 
-    if (result.data !== undefined) {
-      unsubscribeProfile();
+  function getUserLatestNote() {
+    const cachedLatestNote = queryClient.value!.getQueryData([
+      queryKeys.latestNote,
+      pubkey,
+    ]);
+    if (cachedLatestNote) {
+      latestNote = cachedLatestNote as Nostr.Event;
+      return;
     }
-  });
+    const obsLatest = new QueryObserver(queryClient.value!, {
+      // svelte-ignore state_referenced_locally
+      queryKey: [queryKeys.latestNote, pubkey],
+    });
+    const unsubscribeLatest = obsLatest.subscribe((result) => {
+      latestNote = result.data as Nostr.Event;
+
+      if (result.data !== undefined) {
+        unsubscribeLatest();
+      }
+    });
+  }
+
+  function getUserStatus() {
+    const cachedStatus = queryClient.value!.getQueryData([
+      queryKeys.mutualStatus,
+      pubkey,
+    ]);
+    if (cachedStatus) {
+      mutualStatus = cachedStatus as MutualStatus;
+      return;
+    }
+    const obsStatus = new QueryObserver(queryClient.value!, {
+      // svelte-ignore state_referenced_locally
+      queryKey: [queryKeys.mutualStatus, pubkey],
+    });
+    const unsubscribeStatus = obsStatus.subscribe((result) => {
+      mutualStatus = result.data as MutualStatus;
+
+      if (result.data !== undefined) {
+        unsubscribeStatus();
+      }
+    });
+  }
 </script>
 
 <div
