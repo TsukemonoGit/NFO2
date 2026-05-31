@@ -113,27 +113,22 @@
       <div class="min-w-0">
         <div class="flex items-center gap-2">
           <h3 class="truncate font-medium">
-            {profile?.display_name ?? profile?.name ?? petname ?? "Unknown"}
+            {profile?.display_name ??
+              profile?.name ??
+              petname ??
+              "Unknown"}📛{userStatus?.petname}
           </h3>
 
-          {#if userStatus?.mutual === "mutual"}
-            <span
-              class="rounded-md bg-green-500/10 px-2 py-0.5 text-xs text-green-600"
-            >
-              Mutual
-            </span>
-          {/if}
+          <span
+            class="rounded-md bg-green-500/10 px-2 py-0.5 text-xs text-green-600"
+          >
+            {userStatus?.mutual}
+          </span>
         </div>
 
         <p class="mt-1 truncate text-xs text-muted-foreground">
           {pubkey}
         </p>
-      </div>
-
-      <div class="shrink-0 text-right text-xs text-muted-foreground">
-        {#if latestNote}
-          <div>{latestNote.content}</div>
-        {/if}
       </div>
     </div>
 

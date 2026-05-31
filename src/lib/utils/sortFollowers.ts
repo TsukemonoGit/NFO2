@@ -1,47 +1,32 @@
 import type * as Nostr from "nostr-typedef";
-import type { QueryClient } from "@tanstack/svelte-query";
 import { queryKeys } from "$lib/store/constants";
-import { latestKind3 } from "$lib/store/store.svelte";
-import type { UserStatus } from "$lib/types";
-
-export enum SortOrder {
-  follow = "follow",
-  latestPost = "latestPost",
-  mutual = "mutual",
-  petname = "petname",
-}
+import { SortOrder, type UserStatus } from "$lib/types";
+import { queryClient } from "$lib/store/store.svelte";
 
 export function sortFollowList(
-  followList: string[],
+  tags: string[][],
   sortOrder: SortOrder,
-  queryClient: QueryClient,
-): string[] {
-  const indexed = followList.map((pubkey, followIndex) => {
-    const latestNote = queryClient.getQueryData<Nostr.Event>([
-      queryKeys.latestNote,
-      pubkey,
-    ]);
+): string[][] {
+  const indexed = tags.map((tag, followIndex) => {
+    const pubkey = tag[1];
+    const qc = queryClient.value;
+    const latestNote = qc
+      ? qc.getQueryData<Nostr.Event>([queryKeys.latestNote, pubkey])
+      : undefined;
 
-    const userStatus = queryClient.getQueryData<UserStatus>([
-      queryKeys.userStatus,
-      pubkey,
-    ]);
+    const userStatus = qc
+      ? qc.getQueryData<UserStatus>([queryKeys.userStatus, pubkey])
+      : undefined;
 
-    let myPetname: string | undefined;
-
-    const tag = latestKind3.value?.tags.find(
-      (t) => t[0] === "p" && t[1] === pubkey,
-    );
-
-    if (tag) {
-      myPetname = tag[3];
-    }
+    const myPetname: string | undefined = tag[3];
 
     return {
+      tag,
       pubkey,
       followIndex,
       latestCreatedAt: latestNote?.created_at ?? 0,
       mutual: userStatus?.mutual === "mutual",
+      theirPetname: userStatus?.petname,
       myPetname,
     };
   });
@@ -93,5 +78,5 @@ export function sortFollowList(
       break;
   }
 
-  return indexed.map((v) => v.pubkey);
+  return indexed.map((v) => v.tag);
 }

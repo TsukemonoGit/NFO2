@@ -60,10 +60,12 @@ export function setEmit(filters: Nostr.Filter[]) {
 }
 
 export async function set10002Relays(pubkey: string) {
-  const filter = { authors: [pubkey], limit: 1 };
+  const filter = { authors: [pubkey], limit: 1, kinds: [10002] };
   const ev = await getOneshotEvent([filter]);
+  console.log(ev);
   if (ev) {
     rxNostr.setDefaultRelays(ev.tags);
+    //  console.log(rxNostr.getDefaultRelays());
   }
 }
 
@@ -121,9 +123,11 @@ export function fetchFollowListEvents(
 }
 
 let isKind1Fetching = false; //連続でよばれないようにするため。
+
 function fetchKind1Events(queryClient: QueryClient, followList: string[]) {
   if (isKind1Fetching) return;
   isKind1Fetching = true;
+
   const cachedKind1 = queryClient.getQueriesData<Nostr.Event>({
     queryKey: [queryKeys.latestNote],
   });
@@ -134,15 +138,16 @@ function fetchKind1Events(queryClient: QueryClient, followList: string[]) {
       .map(([key]) => key[1] as string),
   );
 
-  const missingKind1 = followList.filter((pk) => !cachedKind1Pubkeys.has(pk));
+  const missingKind1: string[] = followList.filter(
+    (pk) => !cachedKind1Pubkeys.has(pk),
+  );
 
-  const kind1Filters = missingKind1.map((user) => ({
+  const kind1Filters: Nostr.Filter[] = missingKind1.map((user) => ({
     authors: [user],
     limit: 1,
     kinds: [1],
   }));
-
-  const kind1Req = createRxBackwardReq();
+  const kind1Req = createRxBackwardReq("kind1");
 
   rxNostr
     .use(kind1Req)
@@ -166,8 +171,11 @@ function fetchKind1Events(queryClient: QueryClient, followList: string[]) {
         isKind1Fetching = false;
       },
     });
-  kind1Req.emit(kind1Filters);
+  setTimeout(() => {
+    kind1Req.emit(kind1Filters);
+  }, 10);
 }
+
 let isKind0Fetching = false; //連続でよばれないようにするため。
 function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
   if (isKind0Fetching) return;
@@ -183,14 +191,17 @@ function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
       .map(([key]) => key[1] as string),
   );
 
-  const missingKind0 = followList.filter((pk) => !cachedKind0Pubkeys.has(pk));
+  const missingKind0: string[] = followList.filter(
+    (pk) => !cachedKind0Pubkeys.has(pk),
+  );
 
-  const kind0Filters = missingKind0.map((user) => ({
+  const kind0Filters: Nostr.Filter[] = missingKind0.map((user) => ({
     authors: [user],
     limit: 1,
     kinds: [0],
   }));
-  const kind0Req = createRxBackwardReq();
+
+  const kind0Req = createRxBackwardReq("kind0");
 
   rxNostr
     .use(kind0Req)
@@ -228,21 +239,24 @@ function fetchKind3Events(queryClient: QueryClient, followList: string[]) {
   const cachedKind3 = queryClient.getQueriesData<UserStatus>({
     queryKey: [queryKeys.userStatus],
   });
+
   const cachedKind3Pubkeys = new Set(
     cachedKind3
       .filter(([, data]) => data !== undefined)
       .map(([key]) => key[1] as string),
   );
 
-  const missingKind3 = followList.filter((pk) => !cachedKind3Pubkeys.has(pk));
-  const kind3Filters = missingKind3.map((user) => ({
+  const missingKind3: string[] = followList.filter(
+    (pk) => !cachedKind3Pubkeys.has(pk),
+  );
+  const kind3Filters: Nostr.Filter[] = missingKind3.map((user) => ({
     authors: [user],
     limit: 1,
     kinds: [3],
   }));
 
   if (kind3Filters.length > 0) {
-    const kind3Req = createRxBackwardReq();
+    const kind3Req = createRxBackwardReq("kind3");
 
     rxNostr
       .use(kind3Req)

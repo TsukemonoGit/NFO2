@@ -4,7 +4,11 @@
   import { onMount, untrack } from "svelte";
   import { waitNostr } from "nip07-awaiter";
   import { latestKind3, loginUser, queryClient } from "$lib/store/store.svelte";
-  import { fetchFollowListEvents, setEmit } from "$lib/nostr/rx-nostr";
+  import {
+    fetchFollowListEvents,
+    set10002Relays,
+    setEmit,
+  } from "$lib/nostr/rx-nostr";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
   import { browser } from "$app/environment";
   import { getFollowList } from "$lib/utils/utils";
@@ -54,10 +58,11 @@
   $effect(() => {
     const pubkey = loginUser.value;
     if (!pubkey) return;
-    untrack(() => {
+    untrack(async () => {
+      await set10002Relays(pubkey);
       latestKind3.value = null;
+      setEmit([{ authors: [pubkey], kinds: [3], limit: 1 }]);
     });
-    setEmit([{ authors: [pubkey], kinds: [3], limit: 1 }]);
   });
 
   $effect(() => {
@@ -86,7 +91,9 @@
   $effect(() => {
     if (latestKind3.value && _queryClient) {
       untrack(() => {
-        fetchFollowListEvents(_queryClient, getFollowList(latestKind3.value!));
+        fetchFollowListEvents(_queryClient, getFollowList(latestKind3.value!), {
+          kind3: true,
+        });
       });
     }
   });
