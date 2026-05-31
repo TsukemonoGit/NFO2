@@ -171,9 +171,8 @@ function fetchKind1Events(queryClient: QueryClient, followList: string[]) {
         isKind1Fetching = false;
       },
     });
-  setTimeout(() => {
-    kind1Req.emit(kind1Filters);
-  }, 10);
+
+  kind1Req.emit(kind1Filters);
 }
 
 let isKind0Fetching = false; //連続でよばれないようにするため。
@@ -228,6 +227,7 @@ function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
         isKind0Fetching = false;
       },
     });
+
   kind0Req.emit(kind0Filters);
 }
 
