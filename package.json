@@ -17,6 +17,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
+    "@konemono/vitest-nostr": "workspace:*",
     "@sveltejs/adapter-auto": "^7.0.1",
     "@sveltejs/kit": "^2.61.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
@@ -28,12 +29,10 @@
     "typescript": "^6.0.3",
     "vite": "^8.0.14",
     "vitest": "^4.1.7",
-    "@konemono/vitest-nostr": "workspace:*",
     "vitest-websocket-mock": "^0.5.0"
   },
   "dependencies": {
     "@rx-nostr/crypto": "^3.1.6",
-    "@tanstack/svelte-query": "^6.1.33",
     "bits-ui": "^2.18.1",
     "nip07-awaiter": "^1.1.0",
     "nostr-tools": "^2.23.5",

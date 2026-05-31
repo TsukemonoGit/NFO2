@@ -21,7 +21,7 @@ const makeMap = (
   Object.fromEntries(
     entries.map(([pubkey, data]) => [
       pubkey,
-      { npub: `npub_${pubkey}`, ...data },
+      { npub: `npub_${pubkey}`, ...data, mutualStatus: "unknown" },
     ]),
   );
 
@@ -95,12 +95,12 @@ describe("sortFollowers", () => {
   });
 
   describe("SortOrder.mutual", () => {
-    it("mutual → not_mutual → unknown の順にソートする", () => {
+    it("mutual → notMutual → unknown の順にソートする", () => {
       const pubkeys = ["a", "b", "c"];
       const map = makeMap([
         ["a", { mutualStatus: "unknown" }],
         ["b", { mutualStatus: "mutual" }],
-        ["c", { mutualStatus: "not_mutual" }],
+        ["c", { mutualStatus: "notMutual" }],
       ]);
       expect(sortFollowers(pubkeys, map, SortOrder.mutual)).toEqual([
         "b",

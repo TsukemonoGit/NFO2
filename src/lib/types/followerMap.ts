@@ -9,12 +9,12 @@ export interface UserData {
   relayUrl?: string;
   petname?: string;
   profile?: Profile;
-  mutualStatus?: MutualStatus; //相互かどうか(フォローされてるかどうか)
+  mutualStatus: MutualStatus; //相互かどうか(フォローされてるかどうか)
   latestNote?: Nostr.Event; //最新の投稿
 }
-export type MutualStatus = "mutual" | "not_mutual" | "unknown";
+export type MutualStatus = "mutual" | "notMutual" | "unknown";
 export const MUTUAL_RANK: Record<MutualStatus, number> = {
   mutual: 0,
-  not_mutual: 1,
+  notMutual: 1,
   unknown: 2,
 };

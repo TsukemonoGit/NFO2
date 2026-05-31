@@ -3,7 +3,13 @@ import { getProfile } from "$lib/utils/utils";
 import { nip19 } from "nostr-tools";
 import * as Nostr from "nostr-typedef";
 
+export const loginUser: { value: string } = $state({ value: "" });
+
 export const followerMap = $state<FollowerMap>({});
+
+export const latestKind3: { value: Nostr.Event | null } = $state({
+  value: null,
+});
 
 export function initUser(tag: string[]) {
   if (tag[0] !== "p" || tag.length < 2) return;
@@ -13,6 +19,7 @@ export function initUser(tag: string[]) {
     npub: nip19.npubEncode(pubkey),
     relayUrl: tag[2] || undefined,
     petname: tag[3] || undefined,
+    mutualStatus: "unknown",
   };
 }
 

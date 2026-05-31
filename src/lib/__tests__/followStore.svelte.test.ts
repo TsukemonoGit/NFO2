@@ -106,10 +106,10 @@ describe("setMutualStatus", () => {
     expect(followerMap[PUBKEY].mutualStatus).toBe("mutual");
   });
 
-  it("mutualStatusをnot_mutualに更新する", () => {
+  it("mutualStatusをnotMutualに更新する", () => {
     initUser(["p", PUBKEY]);
-    setMutualStatus(PUBKEY, "not_mutual");
-    expect(followerMap[PUBKEY].mutualStatus).toBe("not_mutual");
+    setMutualStatus(PUBKEY, "notMutual");
+    expect(followerMap[PUBKEY].mutualStatus).toBe("notMutual");
   });
 
   it("mutualStatusをunknownに更新する", () => {
