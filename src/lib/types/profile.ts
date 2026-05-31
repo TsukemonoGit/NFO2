@@ -15,5 +15,6 @@ export enum SortOrder {
   follow = "follow",
   latestPost = "latestPost",
   mutual = "mutual",
-  petname = "petname",
+  myPetname = "myPetname",
+  theirPetname = "theirPetname",
 }

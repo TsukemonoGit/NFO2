@@ -48,7 +48,28 @@ export function sortFollowList(
       });
       break;
 
-    case SortOrder.petname:
+    case SortOrder.theirPetname:
+      indexed.sort((a, b) => {
+        const aName = a.theirPetname ?? "";
+        const bName = b.theirPetname ?? "";
+
+        const aHas = aName.length > 0;
+        const bHas = bName.length > 0;
+
+        if (aHas !== bHas) {
+          return aHas ? -1 : 1;
+        }
+
+        const result = aName.localeCompare(bName, "ja");
+
+        if (result !== 0) {
+          return result;
+        }
+
+        return a.followIndex - b.followIndex;
+      });
+      break;
+    case SortOrder.myPetname: {
       indexed.sort((a, b) => {
         const aName = a.myPetname ?? "";
         const bName = b.myPetname ?? "";
@@ -69,7 +90,7 @@ export function sortFollowList(
         return a.followIndex - b.followIndex;
       });
       break;
-
+    }
     case SortOrder.follow:
     default:
       indexed.sort((a, b) => {

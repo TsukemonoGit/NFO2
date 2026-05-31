@@ -113,10 +113,7 @@
       <div class="min-w-0">
         <div class="flex items-center gap-2">
           <h3 class="truncate font-medium">
-            {profile?.display_name ??
-              profile?.name ??
-              petname ??
-              "Unknown"}📛{userStatus?.petname}
+            {profile?.display_name ?? profile?.name ?? "Unknown"}📛{petname}
           </h3>
 
           <span

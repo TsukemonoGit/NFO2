@@ -14,7 +14,8 @@
     [SortOrder.follow]: "Follow",
     [SortOrder.latestPost]: "Latest Post",
     [SortOrder.mutual]: "Mutual",
-    [SortOrder.petname]: "Petname",
+    [SortOrder.myPetname]: "MyPetname",
+    [SortOrder.theirPetname]: "TheirPetname",
   };
 
   const themes = Object.values(SortOrder).map((value) => {
