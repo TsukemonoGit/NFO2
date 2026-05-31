@@ -30,18 +30,19 @@
     if (cachedProfile) {
       profile = cachedProfile as Profile;
       return;
-    }
-    const obsProfile = new QueryObserver(queryClient.value!, {
-      // svelte-ignore state_referenced_locally
-      queryKey: [queryKeys.profile, pubkey],
-    });
-    const unsubscribeProfile = obsProfile.subscribe((result) => {
-      profile = result.data as Profile;
+    } else {
+      const obsProfile = new QueryObserver(queryClient.value!, {
+        // svelte-ignore state_referenced_locally
+        queryKey: [queryKeys.profile, pubkey],
+      });
+      const unsubscribeProfile = obsProfile.subscribe((result) => {
+        if (result.data !== undefined) {
+          profile = result.data as Profile;
 
-      if (result.data !== undefined) {
-        unsubscribeProfile();
-      }
-    });
+          unsubscribeProfile();
+        }
+      });
+    }
   }
 
   function getUserLatestNote() {
@@ -52,18 +53,19 @@
     if (cachedLatestNote) {
       latestNote = cachedLatestNote as Nostr.Event;
       return;
-    }
-    const obsLatest = new QueryObserver(queryClient.value!, {
-      // svelte-ignore state_referenced_locally
-      queryKey: [queryKeys.latestNote, pubkey],
-    });
-    const unsubscribeLatest = obsLatest.subscribe((result) => {
-      latestNote = result.data as Nostr.Event;
+    } else {
+      const obsLatest = new QueryObserver(queryClient.value!, {
+        // svelte-ignore state_referenced_locally
+        queryKey: [queryKeys.latestNote, pubkey],
+      });
+      const unsubscribeLatest = obsLatest.subscribe((result) => {
+        if (result.data !== undefined) {
+          latestNote = result.data as Nostr.Event;
 
-      if (result.data !== undefined) {
-        unsubscribeLatest();
-      }
-    });
+          unsubscribeLatest();
+        }
+      });
+    }
   }
 
   function getUserStatus() {
@@ -74,18 +76,19 @@
     if (cachedStatus) {
       userStatus = cachedStatus as UserStatus;
       return;
-    }
-    const obsStatus = new QueryObserver(queryClient.value!, {
-      // svelte-ignore state_referenced_locally
-      queryKey: [queryKeys.userStatus, pubkey],
-    });
-    const unsubscribeStatus = obsStatus.subscribe((result) => {
-      userStatus = result.data as UserStatus;
+    } else {
+      const obsStatus = new QueryObserver(queryClient.value!, {
+        // svelte-ignore state_referenced_locally
+        queryKey: [queryKeys.userStatus, pubkey],
+      });
+      const unsubscribeStatus = obsStatus.subscribe((result) => {
+        if (result.data !== undefined) {
+          userStatus = result.data as UserStatus;
 
-      if (result.data !== undefined) {
-        unsubscribeStatus();
-      }
-    });
+          unsubscribeStatus();
+        }
+      });
+    }
   }
 </script>
 
@@ -127,10 +130,6 @@
             {userStatus?.mutual}
           </span>
         </div>
-
-        <p class="mt-1 truncate text-xs text-muted-foreground">
-          {pubkey}
-        </p>
       </div>
     </div>
 
