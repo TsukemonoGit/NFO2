@@ -23,10 +23,9 @@
   });
   console.log(themes);
   $effect(() => {
-    if (sortOrder) {
+    if (sortOrder && latestKind3.value) {
       untrack(() => {
-        if (!latestKind3.value) return;
-        sortedTags = sortFollowList(latestKind3.value.tags, sortOrder);
+        sortedTags = sortFollowList(latestKind3.value!.tags, sortOrder);
       });
     }
   });

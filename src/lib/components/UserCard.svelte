@@ -119,6 +119,11 @@
           <span
             class="rounded-md bg-green-500/10 px-2 py-0.5 text-xs text-green-600"
           >
+            {userStatus?.petname}
+          </span>
+          <span
+            class="rounded-md bg-green-500/10 px-2 py-0.5 text-xs text-green-600"
+          >
             {userStatus?.mutual}
           </span>
         </div>
