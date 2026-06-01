@@ -1,11 +1,17 @@
 import type * as Nostr from "nostr-typedef";
 import { queryKeys } from "$lib/store/constants";
-import { SortOrder, type UserStatus } from "$lib/types";
+import {
+  SortOrder,
+  type UserStatus,
+  type MutualStatus,
+  MUTUAL_RANK,
+} from "$lib/types";
 import { queryClient } from "$lib/store/store.svelte";
 
 export function sortFollowList(
   tags: string[][],
   sortOrder: SortOrder,
+  reverse: boolean = false,
 ): string[][] {
   const indexed = tags.map((tag, followIndex) => {
     const pubkey = tag[1];
@@ -25,7 +31,7 @@ export function sortFollowList(
       pubkey,
       followIndex,
       latestCreatedAt: latestNote?.created_at ?? 0,
-      mutual: userStatus?.mutual === "mutual",
+      mutual: (userStatus?.mutual ?? "unknown") as MutualStatus,
       theirPetname: userStatus?.petname,
       myPetname,
     };
@@ -40,11 +46,12 @@ export function sortFollowList(
 
     case SortOrder.mutual:
       indexed.sort((a, b) => {
-        if (a.mutual === b.mutual) {
+        const rankA = MUTUAL_RANK[a.mutual];
+        const rankB = MUTUAL_RANK[b.mutual];
+        if (rankA === rankB) {
           return a.followIndex - b.followIndex;
         }
-
-        return a.mutual ? -1 : 1;
+        return rankA - rankB;
       });
       break;
 
@@ -99,5 +106,6 @@ export function sortFollowList(
       break;
   }
 
+  if (reverse) indexed.reverse();
   return indexed.map((v) => v.tag);
 }
