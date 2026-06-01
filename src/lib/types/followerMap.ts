@@ -16,6 +16,7 @@ export interface UserData {
 export interface UserStatus {
   mutual: MutualStatus;
   petname?: string;
+  created_at?: number;
 }
 export type MutualStatus = "mutual" | "notMutual" | "unknown";
 export const MUTUAL_RANK: Record<MutualStatus, number> = {

@@ -61,16 +61,14 @@
         {userStatus.mutual}
       </span>
     {/if}
-
-    {#if userStatus?.petname}
-      <span
-        class="rounded-md bg-secondary-container px-2 py-0.5 text-xs text-on-secondary-container"
-      >
-        {userStatus.petname}
-      </span>
-    {/if}
   </div>
-
+  {#if userStatus?.petname}
+    <span
+      class="rounded-md bg-secondary-container px-2 py-0.5 text-xs text-on-secondary-container"
+    >
+      {userStatus.petname}
+    </span>
+  {/if}
   <!-- 最終投稿日時（重要指標）-->
   <div class="mt-1 flex items-center gap-1.5">
     <Clock class="size-3.5 shrink-0 text-on-surface-variant" />

@@ -14,6 +14,7 @@ export interface Profile {
   bot?: boolean;
   lud16?: string;
   lud06?: string;
+  created_at?: number;
 }
 export enum SortOrder {
   follow = "follow",

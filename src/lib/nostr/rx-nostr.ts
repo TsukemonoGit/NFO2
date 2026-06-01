@@ -242,8 +242,11 @@ function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
           queryClient.setQueryData(
             [queryKeys.profile, pk.event.pubkey],
             (before: Profile | undefined) => {
-              if (!before || profile.created_at > before.created_at) {
-                return profile;
+              if (
+                !before ||
+                (profile.created_at || 0) > (before.created_at || 0)
+              ) {
+                return { ...profile, created_at: profile.create };
               }
               return before;
             },
@@ -320,8 +323,8 @@ function fetchKind3Events(queryClient: QueryClient, followList: string[]) {
           queryClient.setQueryData(
             [queryKeys.userStatus, pk.event.pubkey],
             (before: UserStatus | undefined) => {
-              if (!before) {
-                return status;
+              if (!before || pk.event.created_at > (before.created_at || 0)) {
+                return { ...status, created_at: pk.event.created_at };
               }
               return before;
             },
