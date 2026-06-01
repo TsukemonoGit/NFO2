@@ -246,7 +246,7 @@ function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
                 !before ||
                 (profile.created_at || 0) > (before.created_at || 0)
               ) {
-                return { ...profile, created_at: profile.create };
+                return { ...profile, created_at: pk.event.created_at };
               }
               return before;
             },
