@@ -8,6 +8,7 @@
   import type { UserStatus, Profile, ViewData } from "$lib/types";
   import type * as Nostr from "nostr-typedef";
   import UserDetailModal from "./UserDetailModal.svelte";
+  import EditPetnameModal from "./EditPetnameModal.svelte";
 
   let { sortedTags }: { sortedTags: string[][] } = $props();
 
@@ -19,7 +20,8 @@
     profile: undefined,
     petname: undefined,
   });
-  let open = $state(false);
+  let detailOpen = $state(false);
+  let editPetnameOpen = $state(false);
 
   function more(
     {
@@ -40,11 +42,17 @@
       petname,
     };
     console.log(viewData);
-    open = true;
+    detailOpen = true;
   }
 
   function onDelete() {
     console.log();
+  }
+
+  let editingpetname = $state("");
+  function editPetname(petname: string | undefined) {
+    editingpetname = petname || "";
+    editPetnameOpen = true;
   }
 </script>
 
@@ -77,16 +85,27 @@
                 {profile}
               />
             </ToggleGroup.Item>
-            <Button.Root
-              onclick={() => more({ userStatus, latestNote, profile }, petname)}
-              class="inline-flex w-12 shrink-0 items-center justify-center rounded-r-md bg-secondary-container/80 font-semibold text-on-secondary-container shadow-sm hover:bg-secondary-container active:scale-[0.98] active:transition-all"
+            <div
+              class="grid grid-col-[1/2fr_1/2fr] divide-primary-container divide-y"
             >
-              <CircleQuestionMark />
-            </Button.Root>
+              <Button.Root
+                onclick={() => editPetname(petname)}
+                class="inline-flex w-12 shrink-0 items-center justify-center rounded-tr-md bg-secondary-container/80 font-semibold text-on-secondary-container shadow-sm hover:bg-secondary-container active:scale-[0.98] active:transition-all"
+              >
+                📛
+              </Button.Root><Button.Root
+                onclick={() =>
+                  more({ userStatus, latestNote, profile }, petname)}
+                class="inline-flex w-12 shrink-0 items-center justify-center  rounded-br-md bg-secondary-container/80 font-semibold text-on-secondary-container shadow-sm hover:bg-secondary-container active:scale-[0.98] active:transition-all"
+              >
+                <CircleQuestionMark />
+              </Button.Root>
+            </div>
           </div>
         {/snippet}</UserData
       >
     {/if}
   {/each}
 </ToggleGroup.Root>
-<UserDetailModal bind:open {viewData} />
+<UserDetailModal bind:open={detailOpen} {viewData} />
+<EditPetnameModal bind:open={editPetnameOpen} {editingpetname} />
