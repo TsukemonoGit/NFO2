@@ -5,24 +5,21 @@
   import { ToggleGroup } from "bits-ui";
   import { Button } from "bits-ui";
   import UserData from "./UserData.svelte";
-  import type { UserStatus, Profile } from "$lib/types";
+  import type { UserStatus, Profile, ViewData } from "$lib/types";
   import type * as Nostr from "nostr-typedef";
+  import UserDetailModal from "./UserDetailModal.svelte";
 
   let { sortedTags }: { sortedTags: string[][] } = $props();
 
   let deleteIds: string[] = $state([]);
 
-  let viewData: {
-    userStatus: UserStatus | undefined;
-    latestNote: Nostr.Event | undefined;
-    profile: Profile | undefined;
-    petname: string | undefined;
-  } = $state({
+  let viewData: ViewData = $state({
     userStatus: undefined,
     latestNote: undefined,
     profile: undefined,
     petname: undefined,
   });
+  let open = $state(false);
 
   function more(
     {
@@ -43,6 +40,7 @@
       petname,
     };
     console.log(viewData);
+    open = true;
   }
 
   function onDelete() {
@@ -55,9 +53,7 @@
 {#if deleteIds.length > 0}
   <Button.Root
     onclick={onDelete}
-    class="sticky top-1 float-end rounded-input rounded-md bg-error-container shadow-mini hover:bg-error-container/90 inline-flex text-on-error-container w-24
-	h-12 items-center justify-center 
-	font-semibold active:scale-[0.98] active:transition-all"
+    class="sticky top-1 float-end inline-flex h-12 w-24 items-center justify-center rounded-md bg-error-container font-semibold text-on-error-container shadow-sm hover:bg-error-container/90 active:scale-[0.98] active:transition-all"
   >
     Delete
   </Button.Root>
@@ -68,12 +64,11 @@
     {#if p === "p" && hexRegex.test(npub)}
       <UserData pubkey={npub}>
         {#snippet children({ userStatus, latestNote, profile })}
-          <div class="flex w-full border border-outline-variant rounded-md">
+          <div class="flex w-full rounded-md border border-outline-variant">
             <ToggleGroup.Item
               aria-label={npub}
               value={npub}
-              class="flex w-full items-start bg-surface-container-lowest p-4 transition-colors text-left border-l-primary
-    rounded-l-md hover:bg-primary-container/60 active:border-l-primary-container/60 data-[state=on]:border-l-4 data-[state=on]:text-on-primary-container active:data-[state=on]:border-l-4 active:scale-[0.98]"
+              class="min-w-0 flex w-full items-start rounded-l-md bg-surface-container-lowest p-4 text-left transition-colors hover:bg-primary-container/60 data-[state=on]:border-l-4 data-[state=on]:border-l-primary data-[state=on]:text-on-primary-container active:scale-[0.98] active:data-[state=on]:border-l-4 active:data-[state=on]:border-l-primary-container/60"
             >
               <UserCard
                 {petname}
@@ -85,9 +80,7 @@
             </ToggleGroup.Item>
             <Button.Root
               onclick={() => more({ userStatus, latestNote, profile }, petname)}
-              class="float-right rounded-input rounded-r-md bg-secondary-container/80 shadow-mini hover:bg-secondary-container inline-flex text-on-secondary-container
-	 items-center justify-center w-12 
-	font-semibold active:scale-[0.98] active:transition-all"
+              class="inline-flex w-12 shrink-0 items-center justify-center rounded-r-md bg-secondary-container/80 font-semibold text-on-secondary-container shadow-sm hover:bg-secondary-container active:scale-[0.98] active:transition-all"
             >
               <CircleQuestionMark />
             </Button.Root>
@@ -97,3 +90,4 @@
     {/if}
   {/each}
 </ToggleGroup.Root>
+<UserDetailModal bind:open {viewData} />

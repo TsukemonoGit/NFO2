@@ -1,3 +1,7 @@
+import type { UserStatus } from ".";
+
+import type * as Nostr from "nostr-typedef";
+
 export interface Profile {
   [key: string]: any;
   name?: string;
@@ -17,4 +21,11 @@ export enum SortOrder {
   mutual = "mutual",
   myPetname = "myPetname",
   theirPetname = "theirPetname",
+}
+
+export interface ViewData {
+  userStatus: UserStatus | undefined;
+  latestNote: Nostr.Event | undefined;
+  profile: Profile | undefined;
+  petname: string | undefined;
 }
