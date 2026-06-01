@@ -1,4 +1,6 @@
 import {
+  batch,
+  chunk,
   createRxBackwardReq,
   createRxForwardReq,
   createRxNostr,
@@ -148,9 +150,23 @@ function fetchKind1Events(queryClient: QueryClient, followList: string[]) {
     kinds: [1],
   }));
   const kind1Req = createRxBackwardReq("kind1");
+  const chunkedReq = kind1Req.pipe(
+    chunk(
+      (filters) => filters.length > 100,
+      (filters) => {
+        const pile = [...filters];
+        const chunks = [];
 
+        while (pile.length > 0) {
+          chunks.push(pile.splice(0, 100));
+        }
+
+        return chunks;
+      },
+    ),
+  );
   rxNostr
-    .use(kind1Req)
+    .use(chunkedReq)
     .pipe(uniq())
     .subscribe({
       next: (pk) => {
@@ -201,9 +217,23 @@ function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
   }));
 
   const kind0Req = createRxBackwardReq("kind0");
+  const chunkedReq = kind0Req.pipe(
+    chunk(
+      (filters) => filters.length > 100,
+      (filters) => {
+        const pile = [...filters];
+        const chunks = [];
 
+        while (pile.length > 0) {
+          chunks.push(pile.splice(0, 100));
+        }
+
+        return chunks;
+      },
+    ),
+  );
   rxNostr
-    .use(kind0Req)
+    .use(chunkedReq)
     .pipe(uniq())
     .subscribe({
       next: (pk) => {
@@ -258,8 +288,23 @@ function fetchKind3Events(queryClient: QueryClient, followList: string[]) {
   if (kind3Filters.length > 0) {
     const kind3Req = createRxBackwardReq("kind3");
 
+    const chunkedReq = kind3Req.pipe(
+      chunk(
+        (filters) => filters.length > 100,
+        (filters) => {
+          const pile = [...filters];
+          const chunks = [];
+
+          while (pile.length > 0) {
+            chunks.push(pile.splice(0, 100));
+          }
+
+          return chunks;
+        },
+      ),
+    );
     rxNostr
-      .use(kind3Req)
+      .use(chunkedReq)
       .pipe(uniq())
       .subscribe({
         next: (pk) => {
