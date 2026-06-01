@@ -50,14 +50,13 @@
 
 {deleteIds.length}件選択中
 
-{#if deleteIds.length > 0}
-  <Button.Root
-    onclick={onDelete}
-    class="sticky top-1 float-end inline-flex h-12 w-24 items-center justify-center rounded-md bg-error-container font-semibold text-on-error-container shadow-sm hover:bg-error-container/90 active:scale-[0.98] active:transition-all"
-  >
-    Delete
-  </Button.Root>
-{/if}
+<Button.Root
+  onclick={onDelete}
+  class="sticky top-1 float-end inline-flex h-12 w-24 items-center justify-center rounded-md bg-error-container font-semibold text-on-error-container shadow-sm hover:bg-error-container/90 active:scale-[0.98] active:transition-all disabled:opacity-30"
+  disabled={deleteIds.length == 0}
+>
+  Delete
+</Button.Root>
 
 <ToggleGroup.Root bind:value={deleteIds} type="multiple">
   {#each sortedTags as [p, npub, relay, petname]}

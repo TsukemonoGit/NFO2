@@ -56,7 +56,7 @@
   });
 </script>
 
-<div class="w-5xl mx-auto p-2">
+<div class="w-5xl max-w-full mx-auto p-2">
   <h1 class="text-lg">Nostr Follow Organizer 2</h1>
 
   {#if latestKind3.value}

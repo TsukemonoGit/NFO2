@@ -119,9 +119,13 @@ export function fetchFollowListEvents(
   fetchKind1Events(queryClient, followList);
 
   fetchKind0Events(queryClient, followList);
-  if (options.kind3) {
-    fetchKind3Events(queryClient, followList);
-  }
+
+  /*   if (options.kind3) { */
+  //オプションのオンオフで取得するかしないかしてたら、
+  //途中での変更に対応できないから、取得はいつもして、
+  //表示するかしないかだけ、切り替える。
+  fetchKind3Events(queryClient, followList);
+  /*   } */
 }
 
 let isKind1Fetching = false; //連続でよばれないようにするため。
