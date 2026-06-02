@@ -49,7 +49,9 @@
   <!-- 名前 + mutual バッジ + 相手のpetname -->
   <div class="flex flex-wrap items-center gap-2 justify-between">
     <h3 class="truncate font-medium">
-      {profile?.display_name ?? profile?.name ?? "Unknown"}📛{petname}
+      {profile?.display_name ??
+        profile?.name ??
+        "Unknown"}{#if petname}📛{petname}{/if}
     </h3>
 
     {#if userStatus?.mutual !== undefined}

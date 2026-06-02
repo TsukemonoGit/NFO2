@@ -284,3 +284,7 @@ export function refetchEvent(npub: string, kind: number) {
 
   req.emit(filter);
 }
+
+export function publishEvent(evprm: Nostr.EventParameters) {
+  rxNostr.send(evprm);
+}

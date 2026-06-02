@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { updatePetname } from "$lib/nostr/signEvent";
+  import { updatePetname } from "$lib/nostr/signEvent.svelte";
+  import { latestKind3 } from "$lib/store/store.svelte";
   import type { ViewData } from "$lib/types";
   import { AtSign, Check, Tag, User, X } from "@lucide/svelte";
   import { Dialog, Separator } from "bits-ui";
@@ -20,7 +21,11 @@
   });
 
   function confirmPetname() {
-    updatePetname(viewData.npub, petname);
+    if (!latestKind3.value) {
+      console.log("error!");
+      return;
+    }
+    updatePetname(viewData.npub, petname, latestKind3.value);
     console.log(petname);
     open = false;
   }

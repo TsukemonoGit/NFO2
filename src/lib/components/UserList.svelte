@@ -10,7 +10,7 @@
   import UserDetailModal from "./UserDetailModal.svelte";
   import EditPetnameModal from "./EditPetnameModal.svelte";
   import { latestKind3 } from "$lib/store/store.svelte";
-  import { deleteFromKind3 } from "$lib/nostr/signEvent";
+  import { deleteFromKind3 } from "$lib/nostr/signEvent.svelte";
 
   let { sortedTags }: { sortedTags: string[][] } = $props();
 

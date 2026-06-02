@@ -186,20 +186,21 @@
           </section>
 
           <!-- 最新ノート -->
-          {#if viewData.latestNote}
-            <Separator.Root class="bg-outline-variant -mx-6 block h-px" />
-            <section class="flex flex-col gap-3">
-              <h3
-                class="text-on-surface-variant text-xs font-medium uppercase tracking-wider flex items-center"
+
+          <Separator.Root class="bg-outline-variant -mx-6 block h-px" />
+          <section class="flex flex-col gap-3">
+            <h3
+              class="text-on-surface-variant text-xs font-medium uppercase tracking-wider flex items-center"
+            >
+              <Button.Root
+                onclick={() => reflesh(1)}
+                class="inline-flex h-8 w-8 items-center justify-center rounded-sm mr-4  bg-error-container font-semibold text-on-error-container shadow-sm hover:bg-error-container/90 active:scale-[0.98] active:transition-all disabled:opacity-30"
+                disabled={refreshing}
               >
-                <Button.Root
-                  onclick={() => reflesh(1)}
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-sm mr-4  bg-error-container font-semibold text-on-error-container shadow-sm hover:bg-error-container/90 active:scale-[0.98] active:transition-all disabled:opacity-30"
-                  disabled={refreshing}
-                >
-                  <RefreshCw />
-                </Button.Root>最新ノート
-              </h3>
+                <RefreshCw />
+              </Button.Root>最新ノート
+            </h3>
+            {#if viewData.latestNote}
               <div class="bg-surface-container-high rounded-xl p-3.5">
                 <p
                   class="text-on-surface line-clamp-4 whitespace-pre-wrap text-sm"
@@ -213,8 +214,8 @@
                   {formatDate(viewData.latestNote.created_at)}
                 </p>
               </div>
-            </section>
-          {/if}
+            {/if}
+          </section>
 
           <!-- プロフィール詳細 -->
 
