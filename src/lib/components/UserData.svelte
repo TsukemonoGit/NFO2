@@ -23,6 +23,10 @@
   let latestNote = $state<Nostr.Event | undefined>(undefined);
   let profile = $state<Profile | undefined>(undefined);
 
+  let unsubscribeStatus: () => void;
+  let unsubscribeLatest: () => void;
+  let unsubscribeProfile: () => void;
+
   $effect(() => {
     if (pubkey) {
       untrack(() => {
@@ -37,6 +41,9 @@
     userStatus = undefined;
     latestNote = undefined;
     profile = undefined;
+    unsubscribeStatus?.();
+    unsubscribeLatest?.();
+    unsubscribeProfile?.();
   }
   function getUserProfile() {
     const cachedProfile = queryClient.value!.getQueryData([
@@ -45,20 +52,16 @@
     ]);
     if (cachedProfile) {
       profile = cachedProfile as Profile;
-      return;
-    } else {
-      const obsProfile = new QueryObserver(queryClient.value!, {
-        // svelte-ignore state_referenced_locally
-        queryKey: [queryKeys.profile, pubkey],
-      });
-      const unsubscribeProfile = obsProfile.subscribe((result) => {
-        if (result.data !== undefined) {
-          profile = result.data as Profile;
-
-          unsubscribeProfile();
-        }
-      });
     }
+    const obsProfile = new QueryObserver(queryClient.value!, {
+      // svelte-ignore state_referenced_locally
+      queryKey: [queryKeys.profile, pubkey],
+    });
+    unsubscribeProfile = obsProfile.subscribe((result) => {
+      if (result.data !== undefined) {
+        profile = result.data as Profile;
+      }
+    });
   }
 
   function getUserLatestNote() {
@@ -68,20 +71,16 @@
     ]);
     if (cachedLatestNote) {
       latestNote = cachedLatestNote as Nostr.Event;
-      return;
-    } else {
-      const obsLatest = new QueryObserver(queryClient.value!, {
-        // svelte-ignore state_referenced_locally
-        queryKey: [queryKeys.latestNote, pubkey],
-      });
-      const unsubscribeLatest = obsLatest.subscribe((result) => {
-        if (result.data !== undefined) {
-          latestNote = result.data as Nostr.Event;
-
-          unsubscribeLatest();
-        }
-      });
     }
+    const obsLatest = new QueryObserver(queryClient.value!, {
+      // svelte-ignore state_referenced_locally
+      queryKey: [queryKeys.latestNote, pubkey],
+    });
+    unsubscribeLatest = obsLatest.subscribe((result) => {
+      if (result.data !== undefined) {
+        latestNote = result.data as Nostr.Event;
+      }
+    });
   }
 
   function getUserStatus() {
@@ -91,20 +90,16 @@
     ]);
     if (cachedStatus) {
       userStatus = cachedStatus as UserStatus;
-      return;
-    } else {
-      const obsStatus = new QueryObserver(queryClient.value!, {
-        // svelte-ignore state_referenced_locally
-        queryKey: [queryKeys.userStatus, pubkey],
-      });
-      const unsubscribeStatus = obsStatus.subscribe((result) => {
-        if (result.data !== undefined) {
-          userStatus = result.data as UserStatus;
-
-          unsubscribeStatus();
-        }
-      });
     }
+    const obsStatus = new QueryObserver(queryClient.value!, {
+      // svelte-ignore state_referenced_locally
+      queryKey: [queryKeys.userStatus, pubkey],
+    });
+    unsubscribeStatus = obsStatus.subscribe((result) => {
+      if (result.data !== undefined) {
+        userStatus = result.data as UserStatus;
+      }
+    });
   }
 </script>
 

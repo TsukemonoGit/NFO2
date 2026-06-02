@@ -19,6 +19,7 @@
     latestNote: undefined,
     profile: undefined,
     petname: undefined,
+    npub: "",
   });
   let detailOpen = $state(false);
   let editPetnameOpen = $state(false);
@@ -28,20 +29,23 @@
       userStatus,
       latestNote,
       profile,
+      npub,
     }: {
       userStatus: UserStatus | undefined;
       latestNote: Nostr.Event | undefined;
       profile: Profile | undefined;
+      npub: string;
     },
     petname: string | undefined,
   ) {
     viewData = {
+      npub,
       userStatus,
       latestNote,
       profile,
       petname,
     };
-    console.log(viewData);
+    //console.log(viewData);
     detailOpen = true;
   }
 
@@ -95,7 +99,7 @@
                 📛
               </Button.Root><Button.Root
                 onclick={() =>
-                  more({ userStatus, latestNote, profile }, petname)}
+                  more({ userStatus, latestNote, profile, npub }, petname)}
                 class="inline-flex w-12 shrink-0 items-center justify-center  rounded-br-md bg-secondary-container/80 font-semibold text-on-secondary-container shadow-sm hover:bg-secondary-container active:scale-[0.98] active:transition-all"
               >
                 <CircleQuestionMark />

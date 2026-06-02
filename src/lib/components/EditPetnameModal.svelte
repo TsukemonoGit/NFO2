@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { X, User, AtSign, Tag, Clock, Globe, Zap } from "@lucide/svelte";
-  import { Dialog, Separator } from "bits-ui";
+  import { X } from "@lucide/svelte";
+  import { Dialog } from "bits-ui";
 
   let { editingpetname, open = $bindable() } = $props();
 </script>

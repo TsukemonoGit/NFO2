@@ -11,10 +11,10 @@ import {
 import { verifier } from "@rx-nostr/crypto";
 import { queryKeys, relaySearchRelays } from "$lib/store/constants";
 import * as Nostr from "nostr-typedef";
-import { latestKind3, loginUser } from "$lib/store/store.svelte";
+import { latestKind3, loginUser, queryClient } from "$lib/store/store.svelte";
 import { getProfile } from "$lib/utils/utils";
 import { filter, share } from "rxjs";
-import { QueryClient } from "@tanstack/svelte-query";
+import { QueryClient, useQueryClient } from "@tanstack/svelte-query";
 import type { Profile, UserStatus } from "$lib/types";
 
 const rxNostr = createRxNostr({
@@ -116,23 +116,10 @@ export function fetchFollowListEvents(
   followList: string[],
   options: FetchFollowListOptions = {},
 ) {
-  fetchKind1Events(queryClient, followList);
+  let isFetching = false; //連続でよばれないようにするため。
 
-  fetchKind0Events(queryClient, followList);
-
-  /*   if (options.kind3) { */
-  //オプションのオンオフで取得するかしないかしてたら、
-  //途中での変更に対応できないから、取得はいつもして、
-  //表示するかしないかだけ、切り替える。
-  fetchKind3Events(queryClient, followList);
-  /*   } */
-}
-
-let isKind1Fetching = false; //連続でよばれないようにするため。
-
-function fetchKind1Events(queryClient: QueryClient, followList: string[]) {
-  if (isKind1Fetching) return;
-  isKind1Fetching = true;
+  if (isFetching) return;
+  isFetching = true;
 
   const cachedKind1 = queryClient.getQueriesData<Nostr.Event>({
     queryKey: [queryKeys.latestNote],
@@ -153,52 +140,6 @@ function fetchKind1Events(queryClient: QueryClient, followList: string[]) {
     limit: 1,
     kinds: [1],
   }));
-  const kind1Req = createRxBackwardReq("kind1");
-  const chunkedReq = kind1Req.pipe(
-    chunk(
-      (filters) => filters.length > 100,
-      (filters) => {
-        const pile = [...filters];
-        const chunks = [];
-
-        while (pile.length > 0) {
-          chunks.push(pile.splice(0, 100));
-        }
-
-        return chunks;
-      },
-    ),
-  );
-  rxNostr
-    .use(chunkedReq)
-    .pipe(uniq())
-    .subscribe({
-      next: (pk) => {
-        queryClient.setQueryData(
-          [queryKeys.latestNote, pk.event.pubkey],
-          (before: Nostr.Event | undefined) => {
-            if (!before || pk.event.created_at > before.created_at) {
-              return pk.event;
-            }
-            return before;
-          },
-        );
-      },
-      error: () => {
-        isKind1Fetching = false;
-      },
-      complete: () => {
-        isKind1Fetching = false;
-      },
-    });
-
-  kind1Req.emit(kind1Filters);
-}
-
-let isKind0Fetching = false; //連続でよばれないようにするため。
-function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
-  if (isKind0Fetching) return;
-  isKind0Fetching = true;
 
   const cachedKind0 = queryClient.getQueriesData<Profile>({
     queryKey: [queryKeys.profile],
@@ -220,56 +161,6 @@ function fetchKind0Events(queryClient: QueryClient, followList: string[]) {
     kinds: [0],
   }));
 
-  const kind0Req = createRxBackwardReq("kind0");
-  const chunkedReq = kind0Req.pipe(
-    chunk(
-      (filters) => filters.length > 100,
-      (filters) => {
-        const pile = [...filters];
-        const chunks = [];
-
-        while (pile.length > 0) {
-          chunks.push(pile.splice(0, 100));
-        }
-
-        return chunks;
-      },
-    ),
-  );
-  rxNostr
-    .use(chunkedReq)
-    .pipe(uniq())
-    .subscribe({
-      next: (pk) => {
-        const profile = getProfile(pk.event);
-        if (profile) {
-          queryClient.setQueryData(
-            [queryKeys.profile, pk.event.pubkey],
-            (before: Profile | undefined) => {
-              if (!before || pk.event.created_at > (before.created_at || 0)) {
-                return { ...profile, created_at: pk.event.created_at };
-              }
-              return before;
-            },
-          );
-        }
-      },
-      error: () => {
-        isKind0Fetching = false;
-      },
-      complete: () => {
-        isKind0Fetching = false;
-      },
-    });
-
-  kind0Req.emit(kind0Filters);
-}
-
-let isKind3Fetching = false; //連続でよばれないようにするため。
-function fetchKind3Events(queryClient: QueryClient, followList: string[]) {
-  if (isKind3Fetching) return;
-  isKind3Fetching = true;
-
   const cachedKind3 = queryClient.getQueriesData<UserStatus>({
     queryKey: [queryKeys.userStatus],
   });
@@ -289,56 +180,107 @@ function fetchKind3Events(queryClient: QueryClient, followList: string[]) {
     kinds: [3],
   }));
 
-  if (kind3Filters.length > 0) {
-    const kind3Req = createRxBackwardReq("kind3");
+  const req = createRxBackwardReq("kind1");
+  const chunkedReq = req.pipe(
+    chunk(
+      (filters) => filters.length > 100,
+      (filters) => {
+        const pile = [...filters];
+        const chunks = [];
 
-    const chunkedReq = kind3Req.pipe(
-      chunk(
-        (filters) => filters.length > 100,
-        (filters) => {
-          const pile = [...filters];
-          const chunks = [];
+        while (pile.length > 0) {
+          chunks.push(pile.splice(0, 100));
+        }
 
-          while (pile.length > 0) {
-            chunks.push(pile.splice(0, 100));
+        return chunks;
+      },
+    ),
+  );
+  rxNostr
+    .use(chunkedReq)
+    .pipe(uniq())
+    .subscribe({
+      next: (pk) => {
+        setQuery(pk.event.kind, pk.event, queryClient);
+      },
+      error: () => {
+        isFetching = false;
+      },
+      complete: () => {
+        isFetching = false;
+      },
+    });
+
+  req.emit([...kind1Filters, ...kind0Filters, ...kind3Filters]);
+}
+
+function setQuery(kind: number, ev: Nostr.Event, queryClient: QueryClient) {
+  switch (kind) {
+    case 1:
+      queryClient.setQueryData(
+        [queryKeys.latestNote, ev.pubkey],
+        (before: Nostr.Event | undefined) => {
+          if (!before || ev.created_at > before.created_at) {
+            return ev;
           }
-
-          return chunks;
+          return before;
         },
-      ),
-    );
-    rxNostr
-      .use(chunkedReq)
-      .pipe(uniq())
-      .subscribe({
-        next: (pk) => {
-          const myData = pk.event.tags.find(
-            (tag) => tag[0] === "p" && tag[1] === loginUser.value,
-          );
+      );
+      break;
+    case 3:
+      const myData = ev.tags.find(
+        (tag) => tag[0] === "p" && tag[1] === loginUser.value,
+      );
 
-          const status: UserStatus = {
-            mutual: myData ? "mutual" : "notMutual",
-            petname: myData?.[3] || undefined,
-          };
+      const status: UserStatus = {
+        mutual: myData ? "mutual" : "notMutual",
+        petname: myData?.[3] || undefined,
+      };
 
-          queryClient.setQueryData(
-            [queryKeys.userStatus, pk.event.pubkey],
-            (before: UserStatus | undefined) => {
-              if (!before || pk.event.created_at > (before.created_at || 0)) {
-                return { ...status, created_at: pk.event.created_at };
-              }
-              return before;
-            },
-          );
+      queryClient.setQueryData(
+        [queryKeys.userStatus, ev.pubkey],
+        (before: UserStatus | undefined) => {
+          if (!before || ev.created_at > (before.created_at || 0)) {
+            return { ...status, created_at: ev.created_at };
+          }
+          return before;
         },
-        error: () => {
-          isKind3Fetching = false;
-        },
-        complete: () => {
-          isKind3Fetching = false;
-        },
-      });
+      );
+      break;
+    case 0:
+      const profile = getProfile(ev);
 
-    kind3Req.emit(kind3Filters);
+      if (profile) {
+        queryClient.setQueryData(
+          [queryKeys.profile, ev.pubkey],
+          (before: Profile | undefined) => {
+            if (!before || ev.created_at > (before.created_at || 0)) {
+              return { ...profile, created_at: ev.created_at };
+            }
+            return before;
+          },
+        );
+      }
+      break;
+    default:
+      break;
   }
+}
+
+export function refetchEvent(npub: string, kind: number) {
+  const filter: Nostr.Filter = { authors: [npub], kinds: [kind], limit: 1 };
+  const req = createRxBackwardReq();
+  rxNostr
+    .use(req)
+    .pipe(uniq())
+    .subscribe({
+      next: (pk) => {
+        //console.log(pk);
+        setQuery(pk.event.kind, pk.event, queryClient.value!);
+      },
+      error: () => {},
+      complete: () => {},
+    });
+
+  req.emit(filter);
 }

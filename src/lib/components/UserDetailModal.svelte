@@ -1,10 +1,21 @@
 <script lang="ts">
+  import { refetchEvent } from "$lib/nostr/rx-nostr";
   import type { ViewData } from "$lib/types";
-  import { AtSign, Clock, Globe, Tag, User, X, Zap } from "@lucide/svelte";
-  import { Dialog, Separator } from "bits-ui";
+  import {
+    AtSign,
+    Clock,
+    Globe,
+    Tag,
+    User,
+    X,
+    Zap,
+    RefreshCw,
+  } from "@lucide/svelte";
+  import { Button, Dialog, Separator } from "bits-ui";
 
   interface Props {
     open: boolean;
+
     viewData: ViewData;
   }
   let { open = $bindable(), viewData }: Props = $props();
@@ -45,6 +56,16 @@
         cls: "bg-surface-variant text-on-surface-variant",
       }
     );
+  }
+
+  let refreshing = $state(false);
+  function reflesh(kind: number) {
+    console.log(kind);
+    refetchEvent(viewData.npub, kind);
+    refreshing = true;
+    setTimeout(() => {
+      refreshing = false;
+    }, 3000);
   }
 </script>
 
@@ -110,9 +131,15 @@
           <!-- フォロー状況 -->
           <section class="flex flex-col gap-3">
             <h3
-              class="text-on-surface-variant text-xs font-medium uppercase tracking-wider"
+              class="text-on-surface-variant text-xs font-medium uppercase tracking-wider flex items-center"
             >
-              フォロー状況
+              <Button.Root
+                onclick={() => reflesh(3)}
+                class="inline-flex h-8 w-8 items-center justify-center rounded-sm mr-4  bg-error-container font-semibold text-on-error-container shadow-sm hover:bg-error-container/90 active:scale-[0.98] active:transition-all disabled:opacity-30"
+                disabled={refreshing}
+              >
+                <RefreshCw />
+              </Button.Root>フォロー状況
             </h3>
 
             {#if viewData.userStatus}
@@ -163,9 +190,15 @@
             <Separator.Root class="bg-outline-variant -mx-6 block h-px" />
             <section class="flex flex-col gap-3">
               <h3
-                class="text-on-surface-variant text-xs font-medium uppercase tracking-wider"
+                class="text-on-surface-variant text-xs font-medium uppercase tracking-wider flex items-center"
               >
-                最新ノート
+                <Button.Root
+                  onclick={() => reflesh(1)}
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-sm mr-4  bg-error-container font-semibold text-on-error-container shadow-sm hover:bg-error-container/90 active:scale-[0.98] active:transition-all disabled:opacity-30"
+                  disabled={refreshing}
+                >
+                  <RefreshCw />
+                </Button.Root>最新ノート
               </h3>
               <div class="bg-surface-container-high rounded-xl p-3.5">
                 <p
@@ -184,44 +217,49 @@
           {/if}
 
           <!-- プロフィール詳細 -->
-          {#if viewData.profile?.about || viewData.profile?.website || viewData.profile?.lud16}
-            <Separator.Root class="bg-outline-variant -mx-6 block h-px" />
-            <section class="flex flex-col gap-3">
-              <h3
-                class="text-on-surface-variant text-xs font-medium uppercase tracking-wider"
+
+          <Separator.Root class="bg-outline-variant -mx-6 block h-px" />
+          <section class="flex flex-col gap-3">
+            <h3
+              class="text-on-surface-variant text-xs font-medium uppercase tracking-wider flex items-center"
+            >
+              <Button.Root
+                onclick={() => reflesh(0)}
+                class="inline-flex h-8 w-8 items-center justify-center rounded-sm mr-4  bg-error-container font-semibold text-on-error-container shadow-sm hover:bg-error-container/90 active:scale-[0.98] active:transition-all disabled:opacity-30"
+                disabled={refreshing}
               >
-                プロフィール
-              </h3>
-              {#if viewData.profile?.about}
-                <p
-                  class="text-on-surface line-clamp-4 whitespace-pre-wrap text-sm"
+                <RefreshCw />
+              </Button.Root>プロフィール
+            </h3>
+            {#if viewData.profile?.about}
+              <p
+                class="text-on-surface line-clamp-4 whitespace-pre-wrap text-sm"
+              >
+                {viewData.profile.about}
+              </p>
+            {/if}
+            <div class="flex flex-col gap-1.5">
+              {#if viewData.profile?.website}
+                <a
+                  href={viewData.profile.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary hover:text-primary/80 flex items-center gap-1.5 break-all text-sm"
                 >
-                  {viewData.profile.about}
+                  <Globe class="size-3.5 shrink-0" />
+                  {viewData.profile.website}
+                </a>
+              {/if}
+              {#if viewData.profile?.lud16}
+                <p
+                  class="text-on-surface-variant flex items-center gap-1.5 break-all text-xs"
+                >
+                  <Zap class="size-3.5 shrink-0" />
+                  {viewData.profile.lud16}
                 </p>
               {/if}
-              <div class="flex flex-col gap-1.5">
-                {#if viewData.profile?.website}
-                  <a
-                    href={viewData.profile.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-primary hover:text-primary/80 flex items-center gap-1.5 break-all text-sm"
-                  >
-                    <Globe class="size-3.5 shrink-0" />
-                    {viewData.profile.website}
-                  </a>
-                {/if}
-                {#if viewData.profile?.lud16}
-                  <p
-                    class="text-on-surface-variant flex items-center gap-1.5 break-all text-xs"
-                  >
-                    <Zap class="size-3.5 shrink-0" />
-                    {viewData.profile.lud16}
-                  </p>
-                {/if}
-              </div>
-            </section>
-          {/if}
+            </div>
+          </section>
         </div>
       </div>
 

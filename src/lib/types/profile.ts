@@ -29,4 +29,5 @@ export interface ViewData {
   latestNote: Nostr.Event | undefined;
   profile: Profile | undefined;
   petname: string | undefined;
+  npub: string;
 }
