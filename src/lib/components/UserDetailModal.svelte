@@ -94,11 +94,11 @@
               <img
                 src={viewData.profile.picture}
                 alt="avatar"
-                class="size-14 shrink-0 rounded-full object-cover ring-2 ring-outline-variant"
+                class="size-14 shrink-0 rounded-md object-cover ring-2 ring-outline-variant"
               />
             {:else}
               <div
-                class="bg-surface-variant text-on-surface-variant flex size-14 shrink-0 items-center justify-center rounded-full"
+                class="bg-surface-variant text-on-surface-variant flex size-14 shrink-0 items-center justify-center rounded-md"
               >
                 <User class="size-7" />
               </div>

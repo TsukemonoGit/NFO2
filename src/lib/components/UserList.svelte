@@ -9,6 +9,8 @@
   import type * as Nostr from "nostr-typedef";
   import UserDetailModal from "./UserDetailModal.svelte";
   import EditPetnameModal from "./EditPetnameModal.svelte";
+  import { latestKind3 } from "$lib/store/store.svelte";
+  import { deleteFromKind3 } from "$lib/nostr/signEvent";
 
   let { sortedTags }: { sortedTags: string[][] } = $props();
 
@@ -50,11 +52,36 @@
   }
 
   function onDelete() {
+    if (!latestKind3.value) {
+      console.log("error!");
+      return;
+    }
+    deleteFromKind3(deleteIds, latestKind3.value);
     console.log();
   }
 
   let editingpetname = $state("");
-  function editPetname(petname: string | undefined) {
+  function editPetname(
+    {
+      userStatus,
+      latestNote,
+      profile,
+      npub,
+    }: {
+      userStatus: UserStatus | undefined;
+      latestNote: Nostr.Event | undefined;
+      profile: Profile | undefined;
+      npub: string;
+    },
+    petname: string | undefined,
+  ) {
+    viewData = {
+      npub,
+      userStatus,
+      latestNote,
+      profile,
+      petname,
+    };
     editingpetname = petname || "";
     editPetnameOpen = true;
   }
@@ -93,7 +120,11 @@
               class="grid grid-col-[1/2fr_1/2fr] divide-primary-container divide-y"
             >
               <Button.Root
-                onclick={() => editPetname(petname)}
+                onclick={() =>
+                  editPetname(
+                    { userStatus, latestNote, profile, npub },
+                    petname,
+                  )}
                 class="inline-flex w-12 shrink-0 items-center justify-center rounded-tr-md bg-secondary-container/80 font-semibold text-on-secondary-container shadow-sm hover:bg-secondary-container active:scale-[0.98] active:transition-all"
               >
                 📛
@@ -112,4 +143,4 @@
   {/each}
 </ToggleGroup.Root>
 <UserDetailModal bind:open={detailOpen} {viewData} />
-<EditPetnameModal bind:open={editPetnameOpen} {editingpetname} />
+<EditPetnameModal bind:open={editPetnameOpen} {editingpetname} {viewData} />
