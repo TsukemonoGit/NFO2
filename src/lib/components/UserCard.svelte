@@ -3,16 +3,23 @@
   import { datetime, formatRelativeDate } from "$lib/utils/utils";
   import { Clock } from "@lucide/svelte";
   import type * as Nostr from "nostr-typedef";
+  import { nip19 } from "nostr-tools";
 
   interface Props {
     pubkey: string;
-    petname: string;
+    petname?: string | undefined;
     userStatus: UserStatus | undefined;
     latestNote: Nostr.Event | undefined;
     profile: Profile | undefined;
   }
   let { pubkey, petname, userStatus, latestNote, profile }: Props = $props();
-
+  let npub = $derived.by(() => {
+    try {
+      return nip19.npubEncode(pubkey);
+    } catch (error) {
+      return "";
+    }
+  });
   // MutualStatus の実値が不明なため文字列比較でフォールバックあり
   function mutualCls(mutual: unknown): string {
     return String(mutual) === "mutual"
@@ -51,7 +58,7 @@
     <h3 class="truncate font-medium">
       {profile?.display_name ??
         profile?.name ??
-        "Unknown"}{#if petname}📛{petname}{/if}
+        `${npub.slice(0, 10)}...`}{#if petname}📛{petname}{/if}
     </h3>
 
     {#if userStatus?.mutual !== undefined}

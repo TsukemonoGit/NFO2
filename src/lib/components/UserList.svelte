@@ -9,8 +9,7 @@
   import type * as Nostr from "nostr-typedef";
   import UserDetailModal from "./UserDetailModal.svelte";
   import EditPetnameModal from "./EditPetnameModal.svelte";
-  import { latestKind3 } from "$lib/store/store.svelte";
-  import { deleteFromKind3 } from "$lib/nostr/signEvent.svelte";
+  import DeleteKind3ConfirmModal from "./DeleteKind3ConfirmModal.svelte";
 
   let { sortedTags }: { sortedTags: string[][] } = $props();
 
@@ -25,6 +24,7 @@
   });
   let detailOpen = $state(false);
   let editPetnameOpen = $state(false);
+  let deleteConfirmOpen = $state(false);
 
   function more(
     {
@@ -52,12 +52,7 @@
   }
 
   function onDelete() {
-    if (!latestKind3.value) {
-      console.log("error!");
-      return;
-    }
-    deleteFromKind3(deleteIds, latestKind3.value);
-    console.log();
+    deleteConfirmOpen = true;
   }
 
   let editingpetname = $state("");
@@ -144,3 +139,4 @@
 </ToggleGroup.Root>
 <UserDetailModal bind:open={detailOpen} {viewData} />
 <EditPetnameModal bind:open={editPetnameOpen} {editingpetname} {viewData} />
+<DeleteKind3ConfirmModal bind:open={deleteConfirmOpen} bind:deleteIds />
