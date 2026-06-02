@@ -1,42 +1,102 @@
-# sv
+# Nostr Follow Organizer 2
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Nostr Follow Organizer 2 (NFO2) is the v2 project of [TsukemonoGit/NFO](https://github.com/TsukemonoGit/NFO).
 
-## Creating a project
+NFO2 helps you inspect and organize your Nostr follow list (`kind:3`) by showing each followed user's profile, latest note, mutual-follow status, and NIP-02 petnames.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
+
+- Fetch your latest follow list (`kind:3`) after Nostr login.
+- Display followed users with profile image, name, about text, and latest note.
+- Show whether each user follows you back.
+- Show both your petname for them and their petname for you.
+- Sort by follow order, latest post, mutual status, your petname, or their petname.
+- Reverse the current sort order.
+- Edit petnames in your own follow list.
+- Select multiple users and remove them from your follow list.
+- Use the logged-in user's relay list (`kind:10002`) when available.
+- Switch light / dark theme.
+
+## 日本語
+
+Nostr Follow Organizer 2 (NFO2) は、[Nostr Follow Organizer](https://github.com/TsukemonoGit/NFO) の v2 的なプロジェクトです。
+
+Nostr のフォローリストを取得し、フォロー中ユーザーのプロフィール、最新投稿、相互フォロー状態、NIP-02 petname を一覧で確認・整理できます。
+
+### 主な機能
+
+- Nostr ログイン後、自分の最新フォローリスト (`kind:3`) を取得
+- フォロー先のプロフィール、最新投稿、自己紹介を表示
+- 相互フォローかどうかを表示
+- 自分が相手につけた petname と、相手が自分につけた petname を表示
+- フォロー順、最新投稿順、相互状態、myPetname、theirPetname でソート
+- ソート順の反転
+- 自分のフォローリスト上の petname を編集
+- 複数選択したユーザーをフォローリストから削除
+- `kind:10002` のリレーリストがある場合はそれを利用
+- ライト / ダークテーマ切り替え
+
+## v2 Notes
+
+This version is rebuilt with a newer Svelte stack and a more reactive data flow:
+
+- Svelte 5 + SvelteKit
+- TypeScript
+- Tailwind CSS v4
+- rx-nostr
+- TanStack Svelte Query
+- `@konemono/nostr-login`
+- Cloudflare adapter
+
+## Development
+
+Install dependencies:
 
 ```sh
-# create a new project
-npx sv create my-app
+npm install
 ```
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@0.15.3 create --template minimal --types ts --add tailwindcss="plugins:none" --install npm ./
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Start the development server:
 
 ```sh
 npm run dev
+```
 
-# or start the server and open the app in a new browser tab
+Open the app:
+
+```sh
 npm run dev -- --open
 ```
 
-## Building
+## Build
 
-To create a production version of your app:
+Create a production build:
 
 ```sh
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+Preview the production build:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```sh
+npm run preview
+```
+
+## Check & Test
+
+Run Svelte / TypeScript checks:
+
+```sh
+npm run check
+```
+
+Run tests:
+
+```sh
+npm test
+```
+
+## Related Project
+
+- v1: [TsukemonoGit/NFO](https://github.com/TsukemonoGit/NFO)
+- v1 app: [Nostr Follow Organizer](https://tsukemonogit.github.io/NFO/)
