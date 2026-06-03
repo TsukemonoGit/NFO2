@@ -79,12 +79,16 @@
   }
 
   let copied = $state(false);
-  function copyNpub() {
-    navigator.clipboard.writeText(npub);
-    copied = true;
-    setTimeout(() => {
-      copied = false;
-    }, 2000);
+  async function copyNpub() {
+    try {
+      await navigator.clipboard.writeText(npub);
+      copied = true;
+      setTimeout(() => {
+        copied = false;
+      }, 2000);
+    } catch (_e) {
+      // クリップボードへの書き込みに失敗した場合は何もしない
+    }
   }
 </script>
 
