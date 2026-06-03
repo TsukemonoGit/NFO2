@@ -140,6 +140,7 @@
                   {viewData.profile.nip05}
                 </p>
               {/if}
+              {#if npub}
               <div class="mt-2 flex items-center gap-2">
                 <Button.Root
                   onclick={copyNpub}
@@ -158,6 +159,7 @@
                   njumpで開く
                 </a>
               </div>
+              {/if}
             </div>
           </div>
         </Dialog.Title>
