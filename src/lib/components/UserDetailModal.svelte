@@ -4,6 +4,8 @@
   import {
     AtSign,
     Clock,
+    Copy,
+    ExternalLink,
     Globe,
     Tag,
     User,
@@ -12,6 +14,7 @@
     RefreshCw,
   } from "@lucide/svelte";
   import { Button, Dialog, Separator } from "bits-ui";
+  import { nip19 } from "nostr-tools";
 
   interface Props {
     open: boolean;
@@ -20,6 +23,13 @@
   }
   let { open = $bindable(), viewData }: Props = $props();
 
+  let npub = $derived.by(() => {
+    try {
+      return nip19.npubEncode(viewData.pubhex);
+    } catch (error) {
+      return "";
+    }
+  });
   function formatDate(unixTs: number): string {
     return new Date(unixTs * 1000).toLocaleString("ja-JP", {
       year: "numeric",
@@ -61,11 +71,24 @@
   let refreshing = $state(false);
   function reflesh(kind: number) {
     console.log(kind);
-    refetchEvent(viewData.npub, kind);
+    refetchEvent(viewData.pubhex, kind);
     refreshing = true;
     setTimeout(() => {
       refreshing = false;
     }, 3000);
+  }
+
+  let copied = $state(false);
+  async function copyNpub() {
+    try {
+      await navigator.clipboard.writeText(npub);
+      copied = true;
+      setTimeout(() => {
+        copied = false;
+      }, 2000);
+    } catch (_e) {
+      // クリップボードへの書き込みに失敗した場合は何もしない
+    }
   }
 </script>
 
@@ -116,6 +139,26 @@
                   <AtSign class="size-3 shrink-0" />
                   {viewData.profile.nip05}
                 </p>
+              {/if}
+              {#if npub}
+              <div class="mt-2 flex items-center gap-2">
+                <Button.Root
+                  onclick={copyNpub}
+                  class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface hover:bg-surface-container-highest active:scale-[0.98] active:transition-all"
+                >
+                  <Copy class="size-3 shrink-0" />
+                  {copied ? "コピー済" : "npubをコピー"}
+                </Button.Root>
+                <a
+                  href="https://njump.me/{npub}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium bg-surface-container-high text-on-surface hover:bg-surface-container-highest active:scale-[0.98]"
+                >
+                  <ExternalLink class="size-3 shrink-0" />
+                  njumpで開く
+                </a>
+              </div>
               {/if}
             </div>
           </div>

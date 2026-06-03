@@ -41,11 +41,11 @@
     <img
       src={profile.picture}
       alt=""
-      class="h-14 w-14 rounded-full border border-outline-variant object-cover"
+      class="h-14 w-14 rounded-md border border-outline-variant object-cover"
     />
   {:else}
     <div
-      class="bg-surface-variant text-on-surface-variant flex h-14 w-14 items-center justify-center rounded-full border border-outline-variant text-xs"
+      class="bg-surface-variant text-on-surface-variant flex h-14 w-14 items-center justify-center rounded-md border border-outline-variant text-xs"
     >
       ?
     </div>
