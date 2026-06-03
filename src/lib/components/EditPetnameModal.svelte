@@ -25,7 +25,7 @@
       console.log("error!");
       return;
     }
-    updatePetname(viewData.npub, petname, latestKind3.value);
+    updatePetname(viewData.pubhex, petname, latestKind3.value);
     console.log(petname);
     open = false;
   }
